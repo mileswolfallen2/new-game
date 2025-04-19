@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Rhythm Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      overflow: hidden;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #menu, #settings {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+      z-index: 10;
+    }
+    #settings {
+      top: auto;
+      bottom: 20px;
+    }
+    select, button, label {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #111;
+      color: #0ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff inset;
+    }
+    select:hover, button:hover {
+      background-color: #222;
+    }
+    canvas {
+      display: block;
+      margin: 80px auto;
+      background: #121212;
+      box-shadow: 0 0 40px #0ff;
+      border-radius: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <select id="songSelector">
+      <option value="song.mp3">song1</option>
+      <option value="song2.mp3">Epic Jam</option>
+      <option value="song3.mp3">3ds</option>
+    </select>
+    <button id="playButton">Play</button>
+  </div>
+  <audio id="song" crossorigin="anonymous"></audio>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const audio = document.getElementById('song');
+    const playButton = document.getElementById('playButton');
+    const songSelector = document.getElementById('songSelector');
+
+    const songCharts = {
+      "song.mp3": "./charts/song1.txt",
+      "song2.mp3": "./charts/song2.txt",
+      "song3.mp3": "./charts/song3.txt"
+    };
+
+    const hitZoneY = 500;
+    const noteSpeed = 2;
+
+    let notes = [];
+    const dfjkKeys = ['d', 'f', 'j', 'k'];
+
+    const lanesMap = {
+      'd': 50,
+      'f': 150,
+      'j': 250,
+      'k': 350
+    };
+
+    let hitEffects = [];
+    let gameStarted = false;
+    let score = 0;
+
+    document.addEventListener('keydown', (e) => {
+      if (dfjkKeys.includes(e.key) && gameStarted) {
+        checkHit(e.key);
+      }
+    });
+
+    function checkHit(key) {
+      const now = audio.currentTime;
+      for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        if (!note.hit && note.key === key && Math.abs(note.time - now) < 0.3) {
+          note.hit = true;
+          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
+          score += 100; // Add points for a successful hit
+          return;
+        }
+      }
+    }
+
+    function drawNote(x, y) {
+      const gradient = ctx.createLinearGradient(x - 20, y - 20, x + 20, y + 20);
+      gradient.addColorStop(0, '#0ff');
+      gradient.addColorStop(1, '#0aa');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawHitZone() {
+      for (let key of dfjkKeys) {
+        const x = lanesMap[key];
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);
+        ctx.font = '14px monospace';
+        ctx.fillStyle = '#888';
+        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
+      }
+    }
+
+    function drawHitEffects() {
+      for (let i = hitEffects.length - 1; i >= 0; i--) {
+        const eff = hitEffects[i];
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        eff.radius += 2;
+        eff.alpha -= 0.05;
+        if (eff.alpha <= 0) hitEffects.splice(i, 1);
+      }
+    }
+
+    function drawScore() {
+      ctx.font = '20px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.fillText(`Score: ${score}`, 10, 30);
+    }
+
+    function gameLoop() {
+      const now = audio.currentTime;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawHitZone();
+      drawHitEffects();
+      drawScore();
+
+      for (let note of notes) {
+        if (note.hit) continue;
+
+        const timeToNote = note.time - now;
+        const y = hitZoneY - timeToNote * 100 * noteSpeed;
+
+        if (isNaN(y)) {
+          console.error(`Invalid y value: ${y}, timeToNote: ${timeToNote}, note:`, note);
+          continue;
+        }
+
+        if (!lanesMap[note.key]) {
+          console.error(`Invalid key: ${note.key}`);
+          continue;
+        }
+
+        drawNote(lanesMap[note.key], y);
+      }
+
+      if (gameStarted) requestAnimationFrame(gameLoop);
+    }
+
+    function showGameOverScreen() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '40px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.font = '20px Arial';
+      ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+      gameStarted = false;
+    }
+
+    function startGame() {
+      score = 0; // Reset score
+      gameStarted = true;
+      audio.play().then(() => {
+        requestAnimationFrame(gameLoop);
+      }).catch(err => {
+        alert("Autoplay is blocked. Click Play to start the audio.");
+        console.error(err);
+      });
+
+      // Show game over screen when the song ends
+      audio.addEventListener('ended', () => {
+        showGameOverScreen();
+      }, { once: true });
+    }
+
+    playButton.addEventListener('click', () => {
+      if (!gameStarted) {
+        const selectedSong = songSelector.value;
+        const chartFile = songCharts[selectedSong];
+
+        // Load the chart file
+        fetch(chartFile)
+          .then(response => response.text())
+          .then(textData => {
+            notes = textData.split('\n').map(line => {
+              const match = line.match(/Time: ([\d.]+), Note: (\w+)/);
+              if (match) {
+                const key = match[2];
+                if (!lanesMap[key]) {
+                  console.error(`Invalid key in chart: ${key}`);
+                  return null; // Skip invalid notes
+                }
+                return {
+                  time: parseFloat(match[1]),
+                  key: key,
+                  hit: false
+                };
+              }
+              return null; // Skip invalid lines
+            }).filter(note => note !== null);
+
+            // Debugging: Log parsed notes
+            console.log("Parsed notes:", notes);
+
+            // Start the game
+            audio.src = selectedSong;
+            audio.load();
+            audio.addEventListener('loadedmetadata', () => {
+              startGame();
+            }, { once: true });
+          })
+          .catch(error => {
+            alert('Failed to load chart. Please check the file.');
+            console.error(error);
+          });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings - Simple Rhythm Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #songSelector, #previewButton {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #111;
+      color: #0ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff inset;
+      margin: 10px;
+    }
+    #songSelector:hover, #previewButton:hover {
+      background-color: #222;
+    }
+    audio {
+      margin-top: 20px;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Select a Song Preview</h1>
+  <select id="songSelector">
+    <option value="song.mp3">Cool Beat</option>
+    <option value="allofmyfellas.mp3">Test</option>
+    <option value="song3.mp3">Chill Vibe</option>
+  </select>
+  <button id="previewButton">Preview</button>
+  <audio id="previewAudio" controls></audio>
+
+  <script>
+    const songSelector = document.getElementById('songSelector');
+    const previewButton = document.getElementById('previewButton');
+    const previewAudio = document.getElementById('previewAudio');
+
+    previewButton.addEventListener('click', () => {
+      previewAudio.src = songSelector.value;
+      previewAudio.play();
+    });
+  </script>
+</body>
+</html>

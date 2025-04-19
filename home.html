@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Rhythm Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      overflow: hidden;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #menu, #settings {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+      z-index: 10;
+    }
+    #settings {
+      top: auto;
+      bottom: 20px;
+    }
+    select, button, label, input[type="file"] {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #111;
+      color: #0ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff inset;
+    }
+    select:hover, button:hover, input[type="file"]:hover {
+      background-color: #222;
+    }
+    canvas {
+      display: block;
+      margin: 80px auto;
+      background: #121212;
+      box-shadow: 0 0 40px #0ff;
+      border-radius: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <select id="songSelector">
+      <option value="song.mp3">Cool Beat</option>
+      <option value="song2.mp3">Epic Jam</option>
+      <option value="song3.mp3">Chill Vibe</option>
+    </select>
+    <input type="file" id="chartInput" accept=".text" />
+    <input type="file" id="songInput" accept="audio/*" />
+    <button id="playButton">Play</button>
+  </div>
+  <div id="settings">
+    <label>
+      <input type="checkbox" id="dfjkToggle"> Use DFJK Controls
+    </label>
+  </div>
+  <audio id="song" crossorigin="anonymous"></audio>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const audio = document.getElementById('song');
+    const playButton = document.getElementById('playButton');
+    const songSelector = document.getElementById('songSelector');
+    const chartInput = document.getElementById('chartInput');
+    const songInput = document.getElementById('songInput');
+    const dfjkToggle = document.getElementById('dfjkToggle');
+
+    const hitZoneY = 500;
+    const noteSpeed = 2;
+
+    let notes = [];
+    let useDFJK = false;
+
+    const arrowKeys = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight'];
+    const dfjkKeys = ['d', 'f', 'j', 'k'];
+
+    const lanesMap = {
+      'ArrowLeft': 50,
+      'ArrowUp': 150,
+      'ArrowDown': 250,
+      'ArrowRight': 350,
+      'd': 50,
+      'f': 150,
+      'j': 250,
+      'k': 350
+    };
+
+    let hitEffects = [];
+    let gameStarted = false;
+
+    document.addEventListener('keydown', (e) => {
+      const activeKeys = useDFJK ? dfjkKeys : arrowKeys;
+      if (activeKeys.includes(e.key) && gameStarted) {
+        checkHit(e.key);
+      }
+    });
+
+    dfjkToggle.addEventListener('change', () => {
+      useDFJK = dfjkToggle.checked;
+    });
+
+    chartInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const textData = e.target.result;
+            notes = textData.split('\n').map((line) => {
+              const match = line.match(/Time: ([\d.]+), Note: (\w+)/);
+              if (match) {
+                return {
+                  time: parseFloat(match[1]),
+                  key: match[2],
+                  hit: false,
+                };
+              }
+              return null;
+            }).filter(note => note !== null);
+
+            alert('Chart loaded successfully!');
+          } catch (error) {
+            alert('Failed to load chart. Please ensure it is in the correct text format.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    songInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        audio.src = url;
+        alert('Song loaded successfully!');
+      }
+    });
+
+    function checkHit(key) {
+      const now = audio.currentTime;
+      for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        if (!note.hit && note.key === key && Math.abs(note.time - now) < 0.3) {
+          note.hit = true;
+          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
+          return;
+        }
+      }
+    }
+
+    function drawNote(x, y) {
+      const gradient = ctx.createLinearGradient(x - 20, y - 20, x + 20, y + 20);
+      gradient.addColorStop(0, '#0ff');
+      gradient.addColorStop(1, '#0aa');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawHitZone() {
+      const keysToUse = useDFJK ? dfjkKeys : arrowKeys;
+      for (let key of keysToUse) {
+        const x = lanesMap[key];
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);
+        ctx.font = '14px monospace';
+        ctx.fillStyle = '#888';
+        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
+      }
+    }
+
+    function drawHitEffects() {
+      for (let i = hitEffects.length - 1; i >= 0; i--) {
+        const eff = hitEffects[i];
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        eff.radius += 2;
+        eff.alpha -= 0.05;
+        if (eff.alpha <= 0) hitEffects.splice(i, 1);
+      }
+    }
+
+    function gameLoop() {
+      const now = audio.currentTime;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawHitZone();
+      drawHitEffects();
+
+      for (let note of notes) {
+        if (note.hit) continue;
+        const timeToNote = note.time - now;
+        const y = hitZoneY - timeToNote * 100 * noteSpeed;
+        if (y > canvas.height || y < -40) continue;
+        drawNote(lanesMap[note.key], y);
+      }
+
+      if (gameStarted) requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+      if (notes.length === 0) {
+        alert('No chart loaded. Please load a chart file.');
+        return;
+      }
+      gameStarted = true;
+      audio.play().then(() => {
+        requestAnimationFrame(gameLoop);
+      }).catch(err => {
+        alert("Autoplay is blocked. Click Play to start the audio.");
+        console.error(err);
+      });
+    }
+
+    playButton.addEventListener('click', () => {
+      if (!gameStarted) {
+        if (!audio.src) {
+          audio.src = songSelector.value;
+        }
+        audio.load();
+        audio.addEventListener('loadedmetadata', () => {
+          startGame();
+        }, { once: true });
+      }
+    });
+  </script>
+</body>
+</html>

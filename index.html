@@ -8,28 +8,15 @@
     body {
       margin: 0;
       background: #0a0a0a;
-      overflow: hidden;
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
-    }
-    #menu, #settings {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
       display: flex;
-      gap: 12px;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px #0ff;
-      z-index: 10;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-    #settings {
-      top: auto;
-      bottom: 20px;
-    }
-    select, button, label {
+    #songSelector, #previewButton, #playChartButton, #editorButton, #startGameButton {
       padding: 10px 20px;
       font-size: 16px;
       border: none;
@@ -38,178 +25,67 @@
       color: #0ff;
       cursor: pointer;
       box-shadow: 0 0 10px #0ff inset;
+      margin: 10px;
     }
-    select:hover, button:hover {
+    #songSelector:hover, #previewButton:hover, #playChartButton:hover, #editorButton:hover, #startGameButton:hover {
       background-color: #222;
     }
-    canvas {
-      display: block;
-      margin: 80px auto;
-      background: #121212;
-      box-shadow: 0 0 40px #0ff;
-      border-radius: 16px;
+    audio {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div id="menu">
-    <select id="songSelector">
-      <option value="song.mp3">Cool Beat</option>
-      <option value="song2.mp3">Epic Jam</option>
-      <option value="song3.mp3">Chill Vibe</option>
-    </select>
-    <button id="playButton">Play</button>
-  </div>
-  <div id="settings">
-    <label>
-      <input type="checkbox" id="dfjkToggle"> Use DFJK Controls
-    </label>
-  </div>
-  <audio id="song" crossorigin="anonymous"></audio>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <h1>Welcome to Simple Rhythm Game</h1>
+  <button id="startGameButton" onclick="location.href='test.html'">Start Game</button>
+  <h1>Select a Song to Preview</h1>
+  <select id="songSelector">
+    <option value="song.mp3" data-chart="chart1.json">Cool Beat</option>
+    <option value="allofmyfellas.mp3" data-chart="chart2.json">Test</option>
+    <option value="song3.mp3" data-chart="chart3.json">Chill Vibe</option>
+  </select>
+  <button id="previewButton">Preview</button>
+  <button id="playChartButton">Play Chart</button>
+  <button id="editorButton" onclick="location.href='editor.html'">Editor</button>
+  <audio id="previewAudio" controls crossorigin="anonymous"></audio>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const audio = document.getElementById('song');
-    const playButton = document.getElementById('playButton');
     const songSelector = document.getElementById('songSelector');
-    const dfjkToggle = document.getElementById('dfjkToggle');
+    const previewButton = document.getElementById('previewButton');
+    const playChartButton = document.getElementById('playChartButton');
+    const previewAudio = document.getElementById('previewAudio');
 
-    const hitZoneY = 500;
-    const noteSpeed = 2;
+    // Preview the selected song
+    previewButton.addEventListener('click', () => {
+      previewAudio.src = songSelector.value;
+      previewAudio.play();
+    });
 
-    let notes = [];
-    let useDFJK = false;
-
-    const arrowKeys = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight'];
-    const dfjkKeys = ['d', 'f', 'j', 'k'];
-
-    const lanesMap = {
-      'ArrowLeft': 50,
-      'ArrowUp': 150,
-      'ArrowDown': 250,
-      'ArrowRight': 350,
-      'd': 50,
-      'f': 150,
-      'j': 250,
-      'k': 350
-    };
-
-    let hitEffects = [];
-    let gameStarted = false;
-
-    document.addEventListener('keydown', (e) => {
-      const activeKeys = useDFJK ? dfjkKeys : arrowKeys;
-      if (activeKeys.includes(e.key) && gameStarted) {
-        checkHit(e.key);
+    // Play the chart associated with the selected song
+    playChartButton.addEventListener('click', () => {
+      const selectedOption = songSelector.options[songSelector.selectedIndex];
+      const chartFile = selectedOption.getAttribute('data-chart');
+      if (chartFile) {
+        loadAndPlayChart(chartFile);
+      } else {
+        alert('No chart available for the selected song.');
       }
     });
 
-    dfjkToggle.addEventListener('change', () => {
-      useDFJK = dfjkToggle.checked;
-    });
-
-    function checkHit(key) {
-      const now = audio.currentTime;
-      for (let i = 0; i < notes.length; i++) {
-        const note = notes[i];
-        if (!note.hit && note.key === key && Math.abs(note.time - now) < 0.3) {
-          note.hit = true;
-          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
-          return;
-        }
-      }
+    // Function to load and play the chart
+    function loadAndPlayChart(chartFile) {
+      fetch(chartFile)
+        .then(response => response.json())
+        .then(chartData => {
+          console.log('Loaded chart:', chartData);
+          // Implement your chart-playing logic here
+          alert(`Playing chart: ${chartFile}`);
+        })
+        .catch(error => {
+          console.error('Error loading chart:', error);
+          alert('Failed to load the chart.');
+        });
     }
-
-    function drawNote(x, y) {
-      const gradient = ctx.createLinearGradient(x - 20, y - 20, x + 20, y + 20);
-      gradient.addColorStop(0, '#0ff');
-      gradient.addColorStop(1, '#0aa');
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
-      ctx.fill();
-      ctx.strokeStyle = '#0ff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    function drawHitZone() {
-      const keysToUse = useDFJK ? dfjkKeys : arrowKeys;
-      for (let key of keysToUse) {
-        const x = lanesMap[key];
-        ctx.strokeStyle = '#555';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);
-        ctx.font = '14px monospace';
-        ctx.fillStyle = '#888';
-        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
-      }
-    }
-
-    function drawHitEffects() {
-      for (let i = hitEffects.length - 1; i >= 0; i--) {
-        const eff = hitEffects[i];
-        ctx.beginPath();
-        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        eff.radius += 2;
-        eff.alpha -= 0.05;
-        if (eff.alpha <= 0) hitEffects.splice(i, 1);
-      }
-    }
-
-    function gameLoop() {
-      const now = audio.currentTime;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawHitZone();
-      drawHitEffects();
-
-      for (let note of notes) {
-        if (note.hit) continue;
-        const timeToNote = note.time - now;
-        const y = hitZoneY - timeToNote * 100 * noteSpeed;
-        if (y > canvas.height || y < -40) continue;
-        drawNote(lanesMap[note.key], y);
-      }
-
-      if (gameStarted) requestAnimationFrame(gameLoop);
-    }
-
-    function autoGenerateNotes(duration, bpm = 120) {
-      const beatInterval = 60 / bpm;
-      const activeKeys = useDFJK ? dfjkKeys : arrowKeys;
-      const generated = [];
-      for (let t = 2; t < duration - 1; t += beatInterval) {
-        const key = activeKeys[Math.floor(Math.random() * activeKeys.length)];
-        generated.push({ time: t, key });
-      }
-      return generated;
-    }
-
-    function startGame() {
-      notes = autoGenerateNotes(audio.duration, 100);
-      gameStarted = true;
-      audio.play().then(() => {
-        requestAnimationFrame(gameLoop);
-      }).catch(err => {
-        alert("Autoplay is blocked. Click Play to start the audio.");
-        console.error(err);
-      });
-    }
-
-    playButton.addEventListener('click', () => {
-      if (!gameStarted) {
-        audio.src = songSelector.value;
-        audio.load();
-        audio.addEventListener('loadedmetadata', () => {
-          startGame();
-        }, { once: true });
-      }
-    });
   </script>
 </body>
 </html>

@@ -1,0 +1,4 @@
+Time: 0.50, Note: d
+Time: 1.20, Note: f
+Time: 2.35, Note: j
+Time: 3.00, Note: k
