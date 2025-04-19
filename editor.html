@@ -77,17 +77,21 @@
   <p>Press <strong>D</strong>, <strong>F</strong>, <strong>J</strong>, or <strong>K</strong> to create notes.</p>
   <div class="chart-visual" id="chartVisual"></div>
   <textarea id="chartEditor" readonly placeholder="Chart data will appear here..."></textarea>
+  <button id="playButton">Play Chart</button>
   <button id="exportButton">Export Chart</button>
   <button onclick="location.href='test.html'">Back to Game</button>
 
   <script>
     const chartEditor = document.getElementById('chartEditor');
     const exportButton = document.getElementById('exportButton');
+    const playButton = document.getElementById('playButton');
     const songAudio = document.getElementById('songAudio');
     const chartVisual = document.getElementById('chartVisual');
     const songSelector = document.getElementById('songSelector');
 
     let chartData = [];
+    let sliders = []; // Array to store sliders
+    let keyHoldStart = {}; // Track when a key is pressed
     let startTime = null;
 
     // Map keys to note types and positions
@@ -104,22 +108,39 @@
       songAudio.load();
     });
 
-    // Record key presses as notes
+    // Record key presses as notes or sliders
     document.addEventListener("keydown", (event) => {
       if (!startTime || songAudio.paused) return;
 
       const key = event.key.toLowerCase();
-      if (keyMap[key]) {
-        const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
-        chartData.push({ time: timestamp.toFixed(2), note: keyMap[key].note });
-        chartEditor.value += `Time: ${timestamp.toFixed(2)}, Note: ${keyMap[key].note}\n`;
+      if (keyMap[key] && !keyHoldStart[key]) {
+        keyHoldStart[key] = Date.now(); // Record the time the key was pressed
+      }
+    });
 
-        // Add a visual note
-        const noteElement = document.createElement("div");
-        noteElement.className = "note";
-        noteElement.style.left = `${keyMap[key].position}px`;
-        noteElement.style.bottom = "0px";
-        chartVisual.appendChild(noteElement);
+    document.addEventListener("keyup", (event) => {
+      if (!startTime || songAudio.paused) return;
+
+      const key = event.key.toLowerCase();
+      if (keyMap[key] && keyHoldStart[key]) {
+        const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
+        const holdDuration = Date.now() - keyHoldStart[key];
+
+        if (holdDuration > 200) {
+          // Create a slider if the key was held for more than 200ms
+          sliders.push({
+            startTime: (keyHoldStart[key] - startTime) / 1000,
+            endTime: timestamp,
+            key: keyMap[key].note,
+          });
+          chartEditor.value += `Slider: Start: ${(keyHoldStart[key] - startTime) / 1000}, End: ${timestamp}, Note: ${keyMap[key].note}\n`;
+        } else {
+          // Create a regular note
+          chartData.push({ time: timestamp.toFixed(2), note: keyMap[key].note });
+          chartEditor.value += `Time: ${timestamp.toFixed(2)}, Note: ${keyMap[key].note}\n`;
+        }
+
+        keyHoldStart[key] = null; // Reset the key hold start time
       }
     });
 
@@ -137,17 +158,32 @@
       startTime = null;
     });
 
+    // Play the chart for testing
+    playButton.addEventListener("click", () => {
+      if (chartData.length === 0 && sliders.length === 0) {
+        alert("No chart data to play.");
+        return;
+      }
+
+      alert("Playing the chart for testing...");
+      // Logic to play the chart can be added here (e.g., simulate the game loop)
+    });
+
     // Export chart data to a text file
     exportButton.addEventListener("click", () => {
-      if (chartData.length === 0) {
+      if (chartData.length === 0 && sliders.length === 0) {
         alert("No chart data to export.");
         return;
       }
 
       // Format chart data as plain text
-      const textData = chartData
-        .map((note) => `Time: ${note.time}, Note: ${note.note}`)
-        .join("\n");
+      const textData = [
+        ...chartData.map((note) => `Time: ${note.time}, Note: ${note.note}`),
+        ...sliders.map(
+          (slider) =>
+            `Slider: Start: ${slider.startTime.toFixed(2)}, End: ${slider.endTime.toFixed(2)}, Note: ${slider.key}`
+        ),
+      ].join("\n");
 
       const blob = new Blob([textData], { type: "text/plain" });
       const link = document.createElement("a");

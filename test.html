@@ -12,7 +12,7 @@
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
     }
-    #menu, #settings {
+    #menu {
       position: absolute;
       top: 20px;
       left: 50%;
@@ -25,11 +25,7 @@
       box-shadow: 0 0 10px #0ff;
       z-index: 10;
     }
-    #settings {
-      top: auto;
-      bottom: 20px;
-    }
-    select, button, label {
+    select, button {
       padding: 10px 20px;
       font-size: 16px;
       border: none;
@@ -55,7 +51,7 @@
   <div id="menu">
     <select id="songSelector">
       <option value="song.mp3">song1</option>
-      <option value="song2.mp3">Epic Jam</option>
+      <option value="song2.mp3">allmyselas</option>
       <option value="song3.mp3">3ds</option>
     </select>
     <button id="playButton">Play</button>
@@ -64,197 +60,345 @@
   <canvas id="gameCanvas" width="400" height="600"></canvas>
 
   <script>
+    // DOM Elements
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const audio = document.getElementById('song');
     const playButton = document.getElementById('playButton');
     const songSelector = document.getElementById('songSelector');
 
+    // Game Variables
     const songCharts = {
       "song.mp3": "./charts/song1.txt",
       "song2.mp3": "./charts/song2.txt",
       "song3.mp3": "./charts/song3.txt"
     };
-
     const hitZoneY = 500;
     const noteSpeed = 2;
+    const dfjkKeys = ['d', 'f', 'j', 'k'];
+    const lanesMap = { 'd': 50, 'f': 150, 'j': 250, 'k': 350 };
 
     let notes = [];
-    const dfjkKeys = ['d', 'f', 'j', 'k'];
-
-    const lanesMap = {
-      'd': 50,
-      'f': 150,
-      'j': 250,
-      'k': 350
-    };
-
+    let sliders = [];
     let hitEffects = [];
     let gameStarted = false;
+    let paused = false;
     let score = 0;
+    let feedback = "";
+    let feedbackTimer = 0;
 
-    document.addEventListener('keydown', (e) => {
-      if (dfjkKeys.includes(e.key) && gameStarted) {
+    // Event Listeners
+    document.addEventListener('keydown', handleKeyDown);
+    playButton.addEventListener('click', handlePlayButton);
+
+    // Game Functions
+    function handleKeyDown(e) {
+      e.preventDefault();
+      if (e.key === 'Escape') {
+        togglePause();
+      } else if (dfjkKeys.includes(e.key) && paused) {
+        resumeGame();
+      } else if (dfjkKeys.includes(e.key) && gameStarted && !paused) {
         checkHit(e.key);
-      }
-    });
-
-    function checkHit(key) {
-      const now = audio.currentTime;
-      for (let i = 0; i < notes.length; i++) {
-        const note = notes[i];
-        if (!note.hit && note.key === key && Math.abs(note.time - now) < 0.3) {
-          note.hit = true;
-          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
-          score += 100; // Add points for a successful hit
-          return;
-        }
+        checkSliderHit(e.key);
       }
     }
 
-    function drawNote(x, y) {
-      const gradient = ctx.createLinearGradient(x - 20, y - 20, x + 20, y + 20);
-      gradient.addColorStop(0, '#0ff');
-      gradient.addColorStop(1, '#0aa');
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
-      ctx.fill();
-      ctx.strokeStyle = '#0ff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
+    function handlePlayButton() {
+      if (!gameStarted) {
+        console.log("Play button clicked. Loading chart...");
+        const selectedSong = songSelector.value;
+        const chartFile = songCharts[selectedSong];
+        loadChart(chartFile);
 
-    function drawHitZone() {
-      for (let key of dfjkKeys) {
-        const x = lanesMap[key];
-        ctx.strokeStyle = '#555';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);
-        ctx.font = '14px monospace';
-        ctx.fillStyle = '#888';
-        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
+        audio.removeEventListener('loadedmetadata', startGame);
+        audio.addEventListener('loadedmetadata', () => {
+          console.log("Audio metadata loaded. Starting game...");
+          startGame();
+        }, { once: true });
       }
     }
 
-    function drawHitEffects() {
-      for (let i = hitEffects.length - 1; i >= 0; i--) {
-        const eff = hitEffects[i];
-        ctx.beginPath();
-        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        eff.radius += 2;
-        eff.alpha -= 0.05;
-        if (eff.alpha <= 0) hitEffects.splice(i, 1);
+    function togglePause() {
+      if (!paused) {
+        paused = true;
+        audio.pause();
+        showPauseScreen();
       }
     }
 
-    function drawScore() {
-      ctx.font = '20px Arial';
-      ctx.fillStyle = '#fff';
-      ctx.fillText(`Score: ${score}`, 10, 30);
+    function resumeGame() {
+      paused = false;
+      audio.play();
+      hidePauseScreen();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+      console.log("Game started.");
+      score = 0;
+      gameStarted = true;
+      paused = false;
+      audio.play().then(() => {
+        console.log("Audio playing. Starting game loop...");
+        requestAnimationFrame(gameLoop);
+      }).catch(() => {
+        alert("Autoplay is blocked. Click Play to start the audio.");
+      });
+
+      audio.addEventListener('ended', () => {
+        console.log("Audio ended. Showing game over screen...");
+        gameStarted = false;
+        showGameOverScreen();
+      }, { once: true });
+    }
+
+    function resetGame() {
+      score = 0;
+      notes = [];
+      sliders = [];
+      feedback = "";
+      feedbackTimer = 0;
+      paused = false;
+      gameStarted = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      audio.currentTime = 0;
+      audio.pause();
     }
 
     function gameLoop() {
+      if (paused || !gameStarted) return;
       const now = audio.currentTime;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawHitZone();
       drawHitEffects();
       drawScore();
-
+      // Draw Notes
       for (let note of notes) {
         if (note.hit) continue;
-
         const timeToNote = note.time - now;
         const y = hitZoneY - timeToNote * 100 * noteSpeed;
-
-        if (isNaN(y)) {
-          console.error(`Invalid y value: ${y}, timeToNote: ${timeToNote}, note:`, note);
-          continue;
-        }
-
-        if (!lanesMap[note.key]) {
-          console.error(`Invalid key: ${note.key}`);
-          continue;
-        }
-
+        if (y > canvas.height || y < -40 || isNaN(y)) continue;
         drawNote(lanesMap[note.key], y);
-      }
-
-      if (gameStarted) requestAnimationFrame(gameLoop);
+      } {
+      // Draw Sliders
+        if (slider.hit) continue;
+        const timeToSlider = slider.startTime - now;
+        const y = hitZoneY - timeToSlider * 100 * noteSpeed;
+        if (y > canvas.height || y < -40 || isNaN(y)) continue;tTime) * 100 * noteSpeed;
+        const length = (slider.endTime - slider.startTime) * 100 * noteSpeed; drawSlider(lanesMap[slider.key], y, length);
+        drawSlider(lanesMap[slider.key], y, length);
+      } if (gameStarted) requestAnimationFrame(gameLoop);
+      if (gameStarted) requestAnimationFrame(gameLoop);    }
     }
 
-    function showGameOverScreen() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Drawing Functions
+    function drawNote(x, y) {'#0ff';
+      ctx.fillStyle = '#0ff';
+      ctx.beginPath();ct(x - 20, y - 20, 40, 40, 10);
+      ctx.roundRect(x - 20, y - 20, 40, 40, 10); ctx.fill();
+      ctx.fill();    }
+    }
+ength) {
+    function drawSlider(x, y, length) {'#0ff';
+      ctx.strokeStyle = '#0ff';4;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, y); y - length);
+      ctx.lineTo(x, y - length); ctx.stroke();
+      ctx.stroke();    }
+    }
+
+    function drawHitZone() {{
+      for (let key of dfjkKeys) {
+        const x = lanesMap[key];'#555';
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;neY - 20, 40, 40);
+        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);ace';
+        ctx.font = '14px monospace';
+        ctx.fillStyle = '#888'; ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
+        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35); }
+      }    }
+    }
+
+    function drawHitEffects() {th - 1; i >= 0; i--) {
+      for (let i = hitEffects.length - 1; i >= 0; i--) {ffects[i];
+        const eff = hitEffects[i];
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);`rgba(0, 255, 255, ${eff.alpha})`;
+        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`; = 2;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        eff.radius += 2;
+        eff.alpha -= 0.05; if (eff.alpha <= 0) hitEffects.splice(i, 1);
+        if (eff.alpha <= 0) hitEffects.splice(i, 1); }
+      }    }
+    }
+
+    function drawScore() {;
+      ctx.font = '20px Arial';
+      ctx.fillStyle = '#fff';core}`, 10, 30);
+      ctx.fillText(`Score: ${score}`, 10, 30);
+      if (feedbackTimer > 0) {;
+        ctx.font = '30px Arial';
+        ctx.fillStyle = '#0f0';
+        ctx.textAlign = 'center';dback, canvas.width / 2, 50);
+        ctx.fillText(feedback, canvas.width / 2, 50); feedbackTimer--;
+        feedbackTimer--; }
+      }    }
+    }
+
+    // Utility Functions(chartFile) {
+    function loadChart(chartFile) {
+      fetch(chartFile)esponse.text())
+        .then(response => response.text())
+        .then(textData => {
+          parseChart(textData);
+          audio.src = songSelector.value; // Set the audio sourceaudio.load(); // Load the audio but do not start the game
+          audio.load(); // Load the audio but do not start the game
+        })
+        .catch(() => {lert('Failed to load chart. Please check the file.');
+          alert('Failed to load chart. Please check the file.');   });
+        });    }
+    }
+
+    function parseChart(data) {
+      notes = data.split('\n').map(line => {\d.]+), Note: (\w+)/);
+        const match = line.match(/Time: ([\d.]+), Note: (\w+)/);
+        if (match && lanesMap[match[2]]) { return { time: parseFloat(match[1]), key: match[2], hit: false };
+          return { time: parseFloat(match[1]), key: match[2], hit: false };
+        }
+        return null;      }).filter(note => note !== null);
+      }).filter(note => note !== null);
+
+      sliders = data.split('\n').map(line => {StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/);
+        const match = line.match(/Slider: StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/);
+        if (match && lanesMap[match[3]]) { return { startTime: parseFloat(match[1]), endTime: parseFloat(match[2]), key: match[3], hit: false };
+          return { startTime: parseFloat(match[1]), endTime: parseFloat(match[2]), key: match[3], hit: false };
+        }
+        return null;      }).filter(slider => slider !== null);
+      }).filter(slider => slider !== null);
+
+      console.log("Parsed notes:", notes); console.log("Parsed sliders:", sliders);
+      console.log("Parsed sliders:", sliders);    }
+    }
+
+    function calculateRating(score, maxScore) {re) * 100;
+      const percentage = (score / maxScore) * 100;;
+      if (percentage >= 95) return "S+";
+      if (percentage >= 90) return "S";
+      if (percentage >= 80) return "A";
+      if (percentage >= 70) return "B";age >= 50) return "C";
+      if (percentage >= 50) return "C"; return "D";
+      return "D";    }
+    }
+
+    function checkHit(key) {
+      const now = audio.currentTime;s.length; i++) {
+      for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        if (!note.hit && note.key === key) {.abs(note.time - now);
+          const timeDifference = Math.abs(note.time - now);ce < 0.1) {
+          if (timeDifference < 0.1) {
+            // Perfect hit
+            note.hit = true; y: hitZoneY, radius: 10, alpha: 1 });
+            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });ct hit points
+            score += 300; // Perfect hit points
+            feedback = "Perfect!";meDifference < 0.2) {
+          } else if (timeDifference < 0.2) {
+            // Good hit
+            note.hit = true;y], y: hitZoneY, radius: 10, alpha: 1 });
+            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });od hit points
+            score += 200; // Good hit points
+            feedback = "Good!";imeDifference < 0.3) {
+          } else if (timeDifference < 0.3) {
+            // Bad hit
+            note.hit = true;ey], y: hitZoneY, radius: 10, alpha: 1 });
+            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });ad hit points
+            score += 100; // Bad hit pointsck = "Bad!";
+            feedback = "Bad!";
+          } else {
+            // Miss feedback = "Miss!";
+            feedback = "Miss!";
+          }kTimer = 30; // Display feedback for a short duration
+          feedbackTimer = 30; // Display feedback for a short duration return;
+          return; }
+        }
+      }it, it's a miss
+      // If no note was hit, it's a miss
+      feedback = "Miss!"; feedbackTimer = 30;
+      feedbackTimer = 30;    }
+    }
+
+    function checkSliderHit(key) {
+      const now = audio.currentTime;length; i++) {
+      for (let i = 0; i < sliders.length; i++) {
+        const slider = sliders[i];= slider.startTime && now <= slider.endTime) {
+        if (!slider.hit && slider.key === key && now >= slider.startTime && now <= slider.endTime) {
+          slider.hit = true; // Mark the slider as hitts for hitting a slider
+          score += 500; // Add points for hitting a slider
+          feedback = "Slider Hit!";kTimer = 30; // Display feedback for a short duration
+          feedbackTimer = 30; // Display feedback for a short duration return;
+          return; }
+        } }
+      }    }
+    }
+
+    function showPauseScreen() {as.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);;
       ctx.font = '40px Arial';
       ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center'; ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);
+      ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);    }
+    }
+
+    function hidePauseScreen() { ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);    }
+    }
+
+    function showGameOverScreen() {ngth * 500;
+      const maxScore = notes.length * 300 + sliders.length * 500;re);
+      const rating = calculateRating(score, maxScore);
+      const percentage = (score / maxScore) * 100;as.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);;
+      ctx.font = '40px Arial';
+      ctx.fillStyle = '#fff';r';
       ctx.textAlign = 'center';
-      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 20);
-      ctx.font = '20px Arial';
-      ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+      if (percentage < 50) {, canvas.width / 2, canvas.height / 2 - 60);
+        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+        ctx.font = '20px Arial';20);
+        ctx.fillText(`You scored less than 50%!`, canvas.width / 2, canvas.height / 2 - 20);20);
+        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);llText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 60);
+        ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 60);
+      } else {, canvas.width / 2, canvas.height / 2 - 60);
+        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+        ctx.font = '20px Arial';20);
+        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20); ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
+        ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
+      }ment('button');
+      const tryAgainButton = document.createElement('button');
+      tryAgainButton.textContent = 'Try Again';
+      tryAgainButton.style.position = 'absolute';
+      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 100}px`;anvas.width / 2 - 50}px`;
+      tryAgainButton.style.left = `${canvas.offsetLeft + canvas.width / 2 - 50}px`;X(-50%)';
+      tryAgainButton.style.transform = 'translateX(-50%)';px';
+      tryAgainButton.style.padding = '10px 20px';';
+      tryAgainButton.style.fontSize = '16px';
+      tryAgainButton.style.border = 'none';
+      tryAgainButton.style.borderRadius = '8px'; = '#111';
+      tryAgainButton.style.backgroundColor = '#111';
+      tryAgainButton.style.color = '#0ff';
+      tryAgainButton.style.cursor = 'pointer'; #0ff inset';
+      tryAgainButton.style.boxShadow = '0 0 10px #0ff inset';
+      document.body.appendChild(tryAgainButton);=> {
+      tryAgainButton.addEventListener('click', () => {y.removeChild(tryAgainButton);
+        document.body.removeChild(tryAgainButton);esetGame();
+        resetGame();
+      }); gameStarted = false;
       gameStarted = false;
-    }
-
-    function startGame() {
-      score = 0; // Reset score
-      gameStarted = true;
-      audio.play().then(() => {
-        requestAnimationFrame(gameLoop);
-      }).catch(err => {
-        alert("Autoplay is blocked. Click Play to start the audio.");
-        console.error(err);
-      });
-
-      // Show game over screen when the song ends
-      audio.addEventListener('ended', () => {
-        showGameOverScreen();
-      }, { once: true });
-    }
-
-    playButton.addEventListener('click', () => {
-      if (!gameStarted) {
-        const selectedSong = songSelector.value;
-        const chartFile = songCharts[selectedSong];
-
-        // Load the chart file
-        fetch(chartFile)
-          .then(response => response.text())
-          .then(textData => {
-            notes = textData.split('\n').map(line => {
-              const match = line.match(/Time: ([\d.]+), Note: (\w+)/);
-              if (match) {
-                const key = match[2];
-                if (!lanesMap[key]) {
-                  console.error(`Invalid key in chart: ${key}`);
-                  return null; // Skip invalid notes
-                }
-                return {
-                  time: parseFloat(match[1]),
-                  key: key,
-                  hit: false
-                };
-              }
-              return null; // Skip invalid lines
-            }).filter(note => note !== null);
-
-            // Debugging: Log parsed notes
-            console.log("Parsed notes:", notes);
-
-            // Start the game
-            audio.src = selectedSong;
-            audio.load();
-            audio.addEventListener('loadedmetadata', () => {
-              startGame();
-            }, { once: true });
-          })
-          .catch(error => {
-            alert('Failed to load chart. Please check the file.');
-            console.error(error);
-          });
-      }
-    });
+    }ipt>
   </script>
-</body>
+</body></html>
 </html>
+
+
