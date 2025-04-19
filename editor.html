@@ -10,25 +10,21 @@
       background: #0a0a0a;
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
+    }
+    #editorMenu {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+      z-index: 10;
     }
-    textarea {
-      width: 80%;
-      height: 150px;
-      margin: 20px 0;
-      background-color: #111;
-      color: #0ff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 16px;
-      box-shadow: 0 0 10px #0ff inset;
-    }
-    button, select {
+    #editorMenu button, #editorMenu select {
       padding: 10px 20px;
       font-size: 16px;
       border: none;
@@ -37,62 +33,60 @@
       color: #0ff;
       cursor: pointer;
       box-shadow: 0 0 10px #0ff inset;
-      margin: 10px;
     }
-    button:hover, select:hover {
+    #editorMenu button:hover, #editorMenu select:hover {
       background-color: #222;
     }
-    audio {
-      margin-top: 20px;
+    canvas {
+      display: block;
+      margin: 80px auto;
+      background: #121212;
+      box-shadow: 0 0 40px #0ff;
+      border-radius: 16px;
     }
-    .chart-visual {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    textarea {
       width: 80%;
-      height: 200px;
-      background-color: #222;
+      height: 150px;
+      margin: 20px auto;
+      background-color: #111;
+      color: #0ff;
+      border: none;
       border-radius: 8px;
-      margin: 20px 0;
-      overflow: hidden;
-      position: relative;
-    }
-    .note {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background-color: #0ff;
-      border-radius: 50%;
+      padding: 10px;
+      font-size: 16px;
+      box-shadow: 0 0 10px #0ff inset;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <h1>Chart Editor</h1>
-  <select id="songSelector">
-    <option value="song.mp3">Cool Beat</option>
-    <option value="song2.mp3">Epic Jam</option>
-    <option value="song3.mp3">Chill Vibe</option>
-  </select>
-  <audio id="songAudio" controls></audio>
-  <p>Press <strong>D</strong>, <strong>F</strong>, <strong>J</strong>, or <strong>K</strong> to create notes.</p>
-  <div class="chart-visual" id="chartVisual"></div>
+  <div id="editorMenu">
+    <select id="songSelector">
+      <option value="song.mp3">Cool Beat</option>
+      <option value="song2.mp3">Epic Jam</option>
+      <option value="song3.mp3">Chill Vibe</option>
+    </select>
+    <button id="startRecordingButton">Start Recording</button>
+    <button id="exportButton">Export Chart</button>
+    <button onclick="location.href='test.html'">Back to Game</button>
+  </div>
+  <canvas id="editorCanvas" width="400" height="600"></canvas>
   <textarea id="chartEditor" readonly placeholder="Chart data will appear here..."></textarea>
-  <button id="playButton">Play Chart</button>
-  <button id="exportButton">Export Chart</button>
-  <button onclick="location.href='test.html'">Back to Game</button>
 
   <script>
+    const canvas = document.getElementById('editorCanvas');
+    const ctx = canvas.getContext('2d');
     const chartEditor = document.getElementById('chartEditor');
     const exportButton = document.getElementById('exportButton');
-    const playButton = document.getElementById('playButton');
-    const songAudio = document.getElementById('songAudio');
-    const chartVisual = document.getElementById('chartVisual');
     const songSelector = document.getElementById('songSelector');
+    const startRecordingButton = document.getElementById('startRecordingButton');
 
     let chartData = [];
-    let sliders = []; // Array to store sliders
+    let sliders = [];
     let keyHoldStart = {}; // Track when a key is pressed
     let startTime = null;
+    let isRecording = false; // Track if recording is active
+    let songAudio = null; // Audio element for the selected song
 
     // Map keys to note types and positions
     const keyMap = {
@@ -104,13 +98,45 @@
 
     // Load the selected song
     songSelector.addEventListener("change", () => {
+      if (songAudio) {
+        songAudio.pause();
+        songAudio.remove();
+      }
+      songAudio = document.createElement("audio");
       songAudio.src = songSelector.value;
-      songAudio.load();
+      songAudio.controls = true;
+      songAudio.style.marginTop = "20px";
+      document.body.appendChild(songAudio);
+
+      songAudio.addEventListener("play", () => {
+        if (isRecording) {
+          startTime = Date.now();
+        }
+      });
+
+      songAudio.addEventListener("pause", () => {
+        startTime = null;
+      });
+
+      songAudio.addEventListener("ended", () => {
+        startTime = null;
+      });
+    });
+
+    // Start recording when the button is clicked
+    startRecordingButton.addEventListener("click", () => {
+      if (!songAudio) {
+        alert("Please select a song before starting recording.");
+        return;
+      }
+      isRecording = true;
+      songAudio.play(); // Start playing the song
+      alert("Recording started! Play the song and press keys to create notes or sliders.");
     });
 
     // Record key presses as notes or sliders
     document.addEventListener("keydown", (event) => {
-      if (!startTime || songAudio.paused) return;
+      if (!startTime || !isRecording) return;
 
       const key = event.key.toLowerCase();
       if (keyMap[key] && !keyHoldStart[key]) {
@@ -119,15 +145,15 @@
     });
 
     document.addEventListener("keyup", (event) => {
-      if (!startTime || songAudio.paused) return;
+      if (!startTime || !isRecording) return;
 
       const key = event.key.toLowerCase();
       if (keyMap[key] && keyHoldStart[key]) {
         const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
         const holdDuration = Date.now() - keyHoldStart[key];
 
-        if (holdDuration > 200) {
-          // Create a slider if the key was held for more than 200ms
+        if (holdDuration > 300) {
+          // Create a slider if the key was held for more than 300ms
           sliders.push({
             startTime: (keyHoldStart[key] - startTime) / 1000,
             endTime: timestamp,
@@ -141,32 +167,8 @@
         }
 
         keyHoldStart[key] = null; // Reset the key hold start time
+        drawEditor();
       }
-    });
-
-    // Start recording when the song starts playing
-    songAudio.addEventListener("play", () => {
-      startTime = Date.now();
-    });
-
-    // Stop recording when the song is paused or ends
-    songAudio.addEventListener("pause", () => {
-      startTime = null;
-    });
-
-    songAudio.addEventListener("ended", () => {
-      startTime = null;
-    });
-
-    // Play the chart for testing
-    playButton.addEventListener("click", () => {
-      if (chartData.length === 0 && sliders.length === 0) {
-        alert("No chart data to play.");
-        return;
-      }
-
-      alert("Playing the chart for testing...");
-      // Logic to play the chart can be added here (e.g., simulate the game loop)
     });
 
     // Export chart data to a text file
@@ -191,6 +193,42 @@
       link.download = "chart.txt";
       link.click();
     });
+
+    // Draw the editor canvas
+    function drawEditor() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw notes
+      chartData.forEach((item) => {
+        const x = keyMap[item.note].position;
+        const y = hitZoneY - item.time * 100;
+        drawNote(x, y);
+      });
+
+      // Draw sliders
+      sliders.forEach((slider) => {
+        const x = keyMap[slider.key].position;
+        const startY = hitZoneY - slider.startTime * 100;
+        const endY = hitZoneY - slider.endTime * 100;
+        drawSlider(x, startY, endY - startY);
+      });
+    }
+
+    function drawNote(x, y) {
+      ctx.fillStyle = '#0ff';
+      ctx.beginPath();
+      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
+      ctx.fill();
+    }
+
+    function drawSlider(x, y, length) {
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y - length);
+      ctx.stroke();
+    }
   </script>
 </body>
 </html>

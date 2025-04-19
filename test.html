@@ -25,6 +25,33 @@
       box-shadow: 0 0 10px #0ff;
       z-index: 10;
     }
+    #pauseMenu {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #0ff;
+      text-align: center;
+      z-index: 20;
+    }
+    #pauseMenu button, #pauseMenu input {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #111;
+      color: #0ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff inset;
+    }
+    #pauseMenu button:hover, #pauseMenu input:hover {
+      background-color: #222;
+    }
     select, button {
       padding: 10px 20px;
       font-size: 16px;
@@ -56,6 +83,13 @@
     </select>
     <button id="playButton">Play</button>
   </div>
+  <div id="pauseMenu">
+    <h2>Pause Menu</h2>
+    <label for="noteSpeed">Note Speed:</label>
+    <input type="number" id="noteSpeed" value="2" min="1" max="5" step="0.1" />
+    <br />
+    <button id="resumeButton">Resume</button>
+  </div>
   <audio id="song" crossorigin="anonymous"></audio>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
 
@@ -66,6 +100,9 @@
     const audio = document.getElementById('song');
     const playButton = document.getElementById('playButton');
     const songSelector = document.getElementById('songSelector');
+    const pauseMenu = document.getElementById('pauseMenu');
+    const resumeButton = document.getElementById('resumeButton');
+    const noteSpeedInput = document.getElementById('noteSpeed');
 
     // Game Variables
     const songCharts = {
@@ -74,7 +111,7 @@
       "song3.mp3": "./charts/song3.txt"
     };
     const hitZoneY = 500;
-    const noteSpeed = 2;
+    let noteSpeed = 2;
     const dfjkKeys = ['d', 'f', 'j', 'k'];
     const lanesMap = { 'd': 50, 'f': 150, 'j': 250, 'k': 350 };
 
@@ -90,6 +127,10 @@
     // Event Listeners
     document.addEventListener('keydown', handleKeyDown);
     playButton.addEventListener('click', handlePlayButton);
+    resumeButton.addEventListener('click', resumeGame);
+    noteSpeedInput.addEventListener('change', (e) => {
+      noteSpeed = parseFloat(e.target.value);
+    });
 
     // Game Functions
     function handleKeyDown(e) {
@@ -106,16 +147,12 @@
 
     function handlePlayButton() {
       if (!gameStarted) {
-        console.log("Play button clicked. Loading chart...");
         const selectedSong = songSelector.value;
         const chartFile = songCharts[selectedSong];
         loadChart(chartFile);
 
         audio.removeEventListener('loadedmetadata', startGame);
-        audio.addEventListener('loadedmetadata', () => {
-          console.log("Audio metadata loaded. Starting game...");
-          startGame();
-        }, { once: true });
+        audio.addEventListener('loadedmetadata', startGame, { once: true });
       }
     }
 
@@ -123,31 +160,30 @@
       if (!paused) {
         paused = true;
         audio.pause();
-        showPauseScreen();
+        showPauseMenu();
+      } else {
+        resumeGame();
       }
     }
 
     function resumeGame() {
       paused = false;
       audio.play();
-      hidePauseScreen();
+      hidePauseMenu();
       requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
-      console.log("Game started.");
       score = 0;
       gameStarted = true;
       paused = false;
       audio.play().then(() => {
-        console.log("Audio playing. Starting game loop...");
         requestAnimationFrame(gameLoop);
       }).catch(() => {
         alert("Autoplay is blocked. Click Play to start the audio.");
       });
 
       audio.addEventListener('ended', () => {
-        console.log("Audio ended. Showing game over screen...");
         gameStarted = false;
         showGameOverScreen();
       }, { once: true });
@@ -173,6 +209,7 @@
       drawHitZone();
       drawHitEffects();
       drawScore();
+
       // Draw Notes
       for (let note of notes) {
         if (note.hit) continue;
@@ -180,225 +217,225 @@
         const y = hitZoneY - timeToNote * 100 * noteSpeed;
         if (y > canvas.height || y < -40 || isNaN(y)) continue;
         drawNote(lanesMap[note.key], y);
-      } {
+      }
+
       // Draw Sliders
+      for (let slider of sliders) {
         if (slider.hit) continue;
         const timeToSlider = slider.startTime - now;
         const y = hitZoneY - timeToSlider * 100 * noteSpeed;
-        if (y > canvas.height || y < -40 || isNaN(y)) continue;tTime) * 100 * noteSpeed;
-        const length = (slider.endTime - slider.startTime) * 100 * noteSpeed; drawSlider(lanesMap[slider.key], y, length);
+        if (y > canvas.height || y < -40 || isNaN(y)) continue;
+        const length = (slider.endTime - slider.startTime) * 100 * noteSpeed;
         drawSlider(lanesMap[slider.key], y, length);
-      } if (gameStarted) requestAnimationFrame(gameLoop);
-      if (gameStarted) requestAnimationFrame(gameLoop);    }
+      }
+
+      if (gameStarted) requestAnimationFrame(gameLoop);
     }
 
     // Drawing Functions
-    function drawNote(x, y) {'#0ff';
+    function drawNote(x, y) {
       ctx.fillStyle = '#0ff';
-      ctx.beginPath();ct(x - 20, y - 20, 40, 40, 10);
-      ctx.roundRect(x - 20, y - 20, 40, 40, 10); ctx.fill();
-      ctx.fill();    }
+      ctx.beginPath();
+      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
+      ctx.fill();
     }
-ength) {
-    function drawSlider(x, y, length) {'#0ff';
-      ctx.strokeStyle = '#0ff';4;
+
+    function drawSlider(x, y, length) {
+      ctx.strokeStyle = '#0ff';
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(x, y); y - length);
-      ctx.lineTo(x, y - length); ctx.stroke();
-      ctx.stroke();    }
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y - length);
+      ctx.stroke();
     }
 
-    function drawHitZone() {{
+    function drawHitZone() {
       for (let key of dfjkKeys) {
-        const x = lanesMap[key];'#555';
+        const x = lanesMap[key];
         ctx.strokeStyle = '#555';
-        ctx.lineWidth = 2;neY - 20, 40, 40);
-        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);ace';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - 20, hitZoneY - 20, 40, 40);
         ctx.font = '14px monospace';
-        ctx.fillStyle = '#888'; ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
-        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35); }
-      }    }
+        ctx.fillStyle = '#888';
+        ctx.fillText(key.toUpperCase(), x - 12, hitZoneY + 35);
+      }
     }
 
-    function drawHitEffects() {th - 1; i >= 0; i--) {
-      for (let i = hitEffects.length - 1; i >= 0; i--) {ffects[i];
+    function drawHitEffects() {
+      for (let i = hitEffects.length - 1; i >= 0; i--) {
         const eff = hitEffects[i];
         ctx.beginPath();
-        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);`rgba(0, 255, 255, ${eff.alpha})`;
-        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`; = 2;
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`;
         ctx.lineWidth = 2;
         ctx.stroke();
         eff.radius += 2;
-        eff.alpha -= 0.05; if (eff.alpha <= 0) hitEffects.splice(i, 1);
-        if (eff.alpha <= 0) hitEffects.splice(i, 1); }
-      }    }
+        eff.alpha -= 0.05;
+        if (eff.alpha <= 0) hitEffects.splice(i, 1);
+      }
     }
 
-    function drawScore() {;
+    function drawScore() {
       ctx.font = '20px Arial';
-      ctx.fillStyle = '#fff';core}`, 10, 30);
+      ctx.fillStyle = '#fff';
       ctx.fillText(`Score: ${score}`, 10, 30);
-      if (feedbackTimer > 0) {;
+      if (feedbackTimer > 0) {
         ctx.font = '30px Arial';
         ctx.fillStyle = '#0f0';
-        ctx.textAlign = 'center';dback, canvas.width / 2, 50);
-        ctx.fillText(feedback, canvas.width / 2, 50); feedbackTimer--;
-        feedbackTimer--; }
-      }    }
+        ctx.textAlign = 'center';
+        ctx.fillText(feedback, canvas.width / 2, 50);
+        feedbackTimer--;
+      }
     }
 
-    // Utility Functions(chartFile) {
+    // Utility Functions
     function loadChart(chartFile) {
-      fetch(chartFile)esponse.text())
+      fetch(chartFile)
         .then(response => response.text())
         .then(textData => {
           parseChart(textData);
-          audio.src = songSelector.value; // Set the audio sourceaudio.load(); // Load the audio but do not start the game
-          audio.load(); // Load the audio but do not start the game
+          audio.src = songSelector.value;
+          audio.load();
         })
-        .catch(() => {lert('Failed to load chart. Please check the file.');
-          alert('Failed to load chart. Please check the file.');   });
-        });    }
+        .catch(() => {
+          alert('Failed to load chart. Please check the file.');
+        });
     }
 
     function parseChart(data) {
-      notes = data.split('\n').map(line => {\d.]+), Note: (\w+)/);
+      notes = data.split('\n').map(line => {
         const match = line.match(/Time: ([\d.]+), Note: (\w+)/);
-        if (match && lanesMap[match[2]]) { return { time: parseFloat(match[1]), key: match[2], hit: false };
+        if (match && lanesMap[match[2]]) {
           return { time: parseFloat(match[1]), key: match[2], hit: false };
         }
-        return null;      }).filter(note => note !== null);
+        return null;
       }).filter(note => note !== null);
 
-      sliders = data.split('\n').map(line => {StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/);
+      sliders = data.split('\n').map(line => {
         const match = line.match(/Slider: StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/);
-        if (match && lanesMap[match[3]]) { return { startTime: parseFloat(match[1]), endTime: parseFloat(match[2]), key: match[3], hit: false };
+        if (match && lanesMap[match[3]]) {
           return { startTime: parseFloat(match[1]), endTime: parseFloat(match[2]), key: match[3], hit: false };
         }
-        return null;      }).filter(slider => slider !== null);
+        return null;
       }).filter(slider => slider !== null);
-
-      console.log("Parsed notes:", notes); console.log("Parsed sliders:", sliders);
-      console.log("Parsed sliders:", sliders);    }
     }
 
-    function calculateRating(score, maxScore) {re) * 100;
-      const percentage = (score / maxScore) * 100;;
+    function calculateRating(score, maxScore) {
+      const percentage = (score / maxScore) * 100;
       if (percentage >= 95) return "S+";
       if (percentage >= 90) return "S";
       if (percentage >= 80) return "A";
-      if (percentage >= 70) return "B";age >= 50) return "C";
-      if (percentage >= 50) return "C"; return "D";
-      return "D";    }
+      if (percentage >= 70) return "B";
+      if (percentage >= 50) return "C";
+      return "D";
     }
 
     function checkHit(key) {
-      const now = audio.currentTime;s.length; i++) {
+      const now = audio.currentTime;
       for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
-        if (!note.hit && note.key === key) {.abs(note.time - now);
-          const timeDifference = Math.abs(note.time - now);ce < 0.1) {
+        if (!note.hit && note.key === key) {
+          const timeDifference = Math.abs(note.time - now);
+
           if (timeDifference < 0.1) {
-            // Perfect hit
-            note.hit = true; y: hitZoneY, radius: 10, alpha: 1 });
-            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });ct hit points
-            score += 300; // Perfect hit points
-            feedback = "Perfect!";meDifference < 0.2) {
+            note.hit = true;
+            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
+            score += 300;
+            feedback = "Perfect!";
           } else if (timeDifference < 0.2) {
-            // Good hit
-            note.hit = true;y], y: hitZoneY, radius: 10, alpha: 1 });
-            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });od hit points
-            score += 200; // Good hit points
-            feedback = "Good!";imeDifference < 0.3) {
+            note.hit = true;
+            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
+            score += 200;
+            feedback = "Good!";
           } else if (timeDifference < 0.3) {
-            // Bad hit
-            note.hit = true;ey], y: hitZoneY, radius: 10, alpha: 1 });
-            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });ad hit points
-            score += 100; // Bad hit pointsck = "Bad!";
+            note.hit = true;
+            hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
+            score += 100;
             feedback = "Bad!";
           } else {
-            // Miss feedback = "Miss!";
             feedback = "Miss!";
-          }kTimer = 30; // Display feedback for a short duration
-          feedbackTimer = 30; // Display feedback for a short duration return;
-          return; }
+          }
+
+          feedbackTimer = 30;
+          return;
         }
-      }it, it's a miss
-      // If no note was hit, it's a miss
-      feedback = "Miss!"; feedbackTimer = 30;
-      feedbackTimer = 30;    }
+      }
+
+      feedback = "Miss!";
+      feedbackTimer = 30;
     }
 
     function checkSliderHit(key) {
-      const now = audio.currentTime;length; i++) {
+      const now = audio.currentTime;
       for (let i = 0; i < sliders.length; i++) {
-        const slider = sliders[i];= slider.startTime && now <= slider.endTime) {
+        const slider = sliders[i];
         if (!slider.hit && slider.key === key && now >= slider.startTime && now <= slider.endTime) {
-          slider.hit = true; // Mark the slider as hitts for hitting a slider
-          score += 500; // Add points for hitting a slider
-          feedback = "Slider Hit!";kTimer = 30; // Display feedback for a short duration
-          feedbackTimer = 30; // Display feedback for a short duration return;
-          return; }
-        } }
-      }    }
+          slider.hit = true;
+          score += 500;
+          feedback = "Slider Hit!";
+          feedbackTimer = 30;
+          return;
+        }
+      }
     }
 
-    function showPauseScreen() {as.width, canvas.height);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);;
+    function showPauseMenu() {
+      pauseMenu.style.display = 'block';
+    }
+
+    function hidePauseMenu() {
+      pauseMenu.style.display = 'none';
+    }
+
+    function showGameOverScreen() {
+      const maxScore = notes.length * 300 + sliders.length * 500;
+      const rating = calculateRating(score, maxScore);
+      const percentage = (score / maxScore) * 100;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = '40px Arial';
       ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center'; ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);
-      ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);    }
-    }
-
-    function hidePauseScreen() { ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);    }
-    }
-
-    function showGameOverScreen() {ngth * 500;
-      const maxScore = notes.length * 300 + sliders.length * 500;re);
-      const rating = calculateRating(score, maxScore);
-      const percentage = (score / maxScore) * 100;as.width, canvas.height);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);;
-      ctx.font = '40px Arial';
-      ctx.fillStyle = '#fff';r';
       ctx.textAlign = 'center';
-      if (percentage < 50) {, canvas.width / 2, canvas.height / 2 - 60);
+
+      if (percentage < 50) {
         ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.font = '20px Arial';20);
-        ctx.fillText(`You scored less than 50%!`, canvas.width / 2, canvas.height / 2 - 20);20);
-        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);llText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 60);
+        ctx.font = '20px Arial';
+        ctx.fillText(`You scored less than 50%!`, canvas.width / 2, canvas.height / 2 - 20);
+        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
         ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 60);
-      } else {, canvas.width / 2, canvas.height / 2 - 60);
+      } else {
         ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.font = '20px Arial';20);
-        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20); ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
+        ctx.font = '20px Arial';
+        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20);
         ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
-      }ment('button');
+      }
+
       const tryAgainButton = document.createElement('button');
       tryAgainButton.textContent = 'Try Again';
       tryAgainButton.style.position = 'absolute';
-      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 100}px`;anvas.width / 2 - 50}px`;
-      tryAgainButton.style.left = `${canvas.offsetLeft + canvas.width / 2 - 50}px`;X(-50%)';
-      tryAgainButton.style.transform = 'translateX(-50%)';px';
-      tryAgainButton.style.padding = '10px 20px';';
+      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 100}px`;
+      tryAgainButton.style.left = `${canvas.offsetLeft + canvas.width / 2 - 50}px`;
+      tryAgainButton.style.transform = 'translateX(-50%)';
+      tryAgainButton.style.padding = '10px 20px';
       tryAgainButton.style.fontSize = '16px';
       tryAgainButton.style.border = 'none';
-      tryAgainButton.style.borderRadius = '8px'; = '#111';
+      tryAgainButton.style.borderRadius = '8px';
       tryAgainButton.style.backgroundColor = '#111';
       tryAgainButton.style.color = '#0ff';
-      tryAgainButton.style.cursor = 'pointer'; #0ff inset';
+      tryAgainButton.style.cursor = 'pointer';
       tryAgainButton.style.boxShadow = '0 0 10px #0ff inset';
-      document.body.appendChild(tryAgainButton);=> {
-      tryAgainButton.addEventListener('click', () => {y.removeChild(tryAgainButton);
-        document.body.removeChild(tryAgainButton);esetGame();
+
+      document.body.appendChild(tryAgainButton);
+
+      tryAgainButton.addEventListener('click', () => {
+        document.body.removeChild(tryAgainButton);
         resetGame();
-      }); gameStarted = false;
+      });
+
       gameStarted = false;
-    }ipt>
+    }
   </script>
-</body></html>
+</body>
 </html>
 
 
