@@ -96,13 +96,14 @@
       <option value="song2.mp3">allmyselas</option>
       <option value="song3.mp3">3ds</option>
       <option value="song4.mp3">song4</option>
+      <option value="song5.mp3">99</option>
     </select>
     <button id="playButton">Play</button>
   </div>
   <div id="pauseMenu">
     <h2>Pause Menu</h2>
     <label for="noteSpeed">Note Speed:</label>
-    <input type="number" id="noteSpeed" value="2" min="1" max="5" step="0.1" />
+    <input type="number" id="noteSpeed" value="3" min="1" max="5" step="0.1" />
     <br />
     <button id="resumeButton">Resume</button>
   </div>
@@ -131,7 +132,8 @@
       "song.mp3": "./charts/song1.txt",
       "song2.mp3": "./charts/song2.txt",
       "song3.mp3": "./charts/song3.txt", // Add a comma here
-      "song4.mp3": "./charts/song4.txt"
+      "song4.mp3": "./charts/song4.txt",
+      "song5.mp3": "./charts/song5.txt"
     };
     const hitZoneY = 500;
     let noteSpeed = 2;

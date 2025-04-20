@@ -1,0 +1,4 @@
+Slider: StartTime: 5.0, EndTime: 6.0, Key: d
+Slider: StartTime: 7.0, EndTime: 8.0, Key: f
+Slider: StartTime: 9.0, EndTime: 10.0, Key: j
+Slider: StartTime: 11.0, EndTime: 12.0, Key: k
