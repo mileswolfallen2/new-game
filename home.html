@@ -49,6 +49,21 @@
       box-shadow: 0 0 40px #0ff;
       border-radius: 16px;
     }
+    #stats {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      z-index: 10;
+    }
+    #stats p {
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -66,6 +81,12 @@
     <label>
       <input type="checkbox" id="dfjkToggle"> Use DFJK Controls
     </label>
+  </div>
+  <div id="stats">
+    <p>Score: <span id="score">0</span></p>
+    <p>Notes Hit: <span id="notesHit">0</span></p>
+    <p>Missed Notes: <span id="missedNotes">0</span></p>
+    <p>Accuracy: <span id="accuracy">0%</span></p>
   </div>
   <audio id="song" crossorigin="anonymous"></audio>
   <canvas id="gameCanvas" width="400" height="600"></canvas>

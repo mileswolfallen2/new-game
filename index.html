@@ -3,89 +3,539 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Rhythm Game</title>
+  <title>Beat Maestro - Rhythm Game</title>
   <style>
     body {
       margin: 0;
       background: #0a0a0a;
+      overflow: hidden;
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-image: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
+    }
+    
+    .container {
+      width: 80%;
+      max-width: 1200px;
+      text-align: center;
+    }
+    
+    .logo {
+      margin-bottom: 60px;
+      position: relative;
+      animation: pulse 3s infinite;
+    }
+    
+    .logo h1 {
+      font-size: 4.5rem;
+      margin: 0;
+      font-weight: 800;
+      color: transparent;
+      background: linear-gradient(45deg, #0ff, #08f, #0cf);
+      background-clip: text;
+      -webkit-background-clip: text;
+      text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      letter-spacing: 3px;
+    }
+    
+    .logo p {
+      font-size: 1.4rem;
+      color: #aaa;
+      margin-top: 0;
+    }
+    
+    .menu {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+    
+    .menu-item {
+      width: 200px;
+      height: 220px;
+      background: rgba(10, 10, 10, 0.7);
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(0, 255, 255, 0.1);
     }
-    #songSelector, #previewButton, #playChartButton, #editorButton, #startGameButton {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
+    
+    .menu-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+      border: 1px solid rgba(0, 255, 255, 0.5);
+    }
+    
+    .menu-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #0ff, transparent);
+      animation: animateTop 2s linear infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .menu-item:hover::before {
+      opacity: 1;
+    }
+    
+    .menu-item-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    
+    .menu-item-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: #0ff;
+    }
+    
+    .menu-item h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #0ff;
+    }
+    
+    .menu-item p {
+      margin: 10px 0 0;
+      font-size: 0.9rem;
+      color: #aaa;
+      padding: 0 20px;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    
+    .stat-item {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 15px;
+      padding: 15px 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 120px;
+      border: 1px solid rgba(0, 255, 255, 0.1);
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #0ff;
+      margin: 0;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #888;
+      margin: 5px 0 0;
+    }
+    
+    .song-list {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 20px;
+      border: 1px solid rgba(0, 255, 255, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .song-list h3 {
+      margin-top: 0;
+      color: #0ff;
+      text-align: left;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    }
+    
+    .song-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
       border-radius: 8px;
-      background-color: #111;
+      margin-bottom: 5px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .song-item:hover {
+      background: rgba(0, 255, 255, 0.1);
+    }
+    
+    .song-title {
+      font-weight: bold;
+      color: #fff;
+      flex: 1;
+      text-align: left;
+    }
+    
+    .song-difficulty {
+      background: rgba(0, 255, 255, 0.2);
+      color: #0ff;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      margin-right: 10px;
+    }
+    
+    .song-rating {
+      color: gold;
+      font-weight: bold;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    
+    .loading-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 40px auto;
+      position: relative;
+    }
+    
+    .loading-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #0cf, #0ff);
+      width: 0%;
+      transition: width 0.5s ease;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+    }
+    
+    .version {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      color: #444;
+      font-size: 0.7rem;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes animateTop {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    /* For small screens */
+    @media (max-width: 768px) {
+      .logo h1 {
+        font-size: 3rem;
+      }
+      
+      .menu {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+      
+      .menu-item {
+        width: 80%;
+        height: auto;
+        padding: 20px 0;
+      }
+      
+      .stats {
+        flex-wrap: wrap;
+      }
+    }
+    
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background: #0a0a0a;
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+      padding: 30px;
+      max-width: 500px;
+      width: 80%;
+      position: relative;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+    
+    .close-button {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
       color: #0ff;
       cursor: pointer;
-      box-shadow: 0 0 10px #0ff inset;
-      margin: 10px;
     }
-    #songSelector:hover, #previewButton:hover, #playChartButton:hover, #editorButton:hover, #startGameButton:hover {
-      background-color: #222;
+    
+    .modal h2 {
+      margin-top: 0;
+      color: #0ff;
     }
-    audio {
+    
+    .button {
+      background: #111;
+      color: #0ff;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
       margin-top: 20px;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    }
+    
+    .button:hover {
+      background: #222;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
     }
   </style>
 </head>
 <body>
-  <h1>Welcome to Simple Rhythm Game</h1>
-  <button id="startGameButton" onclick="location.href='test.html'">Start Game</button>
-  <h1>Select a Song to Preview</h1>
-  <select id="songSelector">
-    <option value="song.mp3" data-chart="chart1.json">Cool Beat</option>
-    <option value="allofmyfellas.mp3" data-chart="chart2.json">Test</option>
-    <option value="song3.mp3" data-chart="chart3.json">Chill Vibe</option>
-  </select>
-  <button id="previewButton">Preview</button>
-  <button id="playChartButton">Play Chart</button>
-  <button id="editorButton" onclick="location.href='editor.html'">Editor</button>
-  <audio id="previewAudio" controls crossorigin="anonymous"></audio>
+  <div class="container">
+    <div class="logo">
+      <h1>BEAT MAESTRO</h1>
+      <p>Master the rhythm, conquer the beat!</p>
+    </div>
+    
+    <div class="menu">
+      <div class="menu-item" id="play-game">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+        </div>
+        <h2>Play Game</h2>
+        <p>Challenge yourself with various songs and difficulties</p>
+      </div>
+      
+      <div class="menu-item" id="chart-editor">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+          </svg>
+        </div>
+        <h2>Chart Editor</h2>
+        <p>Create your own rhythm charts and customize songs</p>
+      </div>
+      
+      <div class="menu-item" id="options">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </div>
+        <h2>Options</h2>
+        <p>Adjust settings, keybindings, and customize your experience</p>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-item">
+        <p class="stat-value">24</p>
+        <p class="stat-label">Songs Played</p>
+      </div>
+      <div class="stat-item">
+        <p class="stat-value">S+</p>
+        <p class="stat-label">Best Rating</p>
+      </div>
+      <div class="stat-item">
+        <p class="stat-value">14,320</p>
+        <p class="stat-label">High Score</p>
+      </div>
+    </div>
+    
+    <div class="song-list">
+      <h3>Recent Songs</h3>
+      <div class="song-item">
+        <div class="song-title">song1</div>
+        <div class="song-difficulty">Medium</div>
+        <div class="song-rating">S</div>
+      </div>
+      <div class="song-item">
+        <div class="song-title">allmyselas</div>
+        <div class="song-difficulty">Hard</div>
+        <div class="song-rating">A</div>
+      </div>
+      <div class="song-item">
+        <div class="song-title">3ds</div>
+        <div class="song-difficulty">Easy</div>
+        <div class="song-rating">S+</div>
+      </div>
+    </div>
+    
+    <div class="loading-bar">
+      <div class="loading-progress" id="loading-progress"></div>
+    </div>
+    
+    <div class="footer">
+      Press any key to start
+    </div>
+  </div>
+  
+  <!-- Options Modal -->
+  <div class="modal" id="options-modal">
+    <div class="modal-content">
+      <button class="close-button">&times;</button>
+      <h2>Game Options</h2>
+      <div style="margin: 20px 0; text-align: left;">
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; color: #0ff; margin-bottom: 5px;">Note Speed</label>
+          <input type="range" min="1" max="5" step="0.1" value="2" style="width: 100%;">
+          <div style="display: flex; justify-content: space-between; color: #888; font-size: 0.8rem;">
+            <span>Slow</span>
+            <span>Fast</span>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; color: #0ff; margin-bottom: 5px;">Sound Effects Volume</label>
+          <input type="range" min="0" max="100" value="80" style="width: 100%;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; color: #0ff; margin-bottom: 5px;">Music Volume</label>
+          <input type="range" min="0" max="100" value="90" style="width: 100%;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; color: #0ff; margin-bottom: 5px;">Key Bindings</label>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
+              <div style="font-size: 1.2rem; color: #0ff;">D</div>
+              <div style="font-size: 0.8rem; color: #888;">Lane 1</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
+              <div style="font-size: 1.2rem; color: #0ff;">F</div>
+              <div style="font-size: 0.8rem; color: #888;">Lane 2</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
+              <div style="font-size: 1.2rem; color: #0ff;">J</div>
+              <div style="font-size: 0.8rem; color: #888;">Lane 3</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
+              <div style="font-size: 1.2rem; color: #0ff;">K</div>
+              <div style="font-size: 0.8rem; color: #888;">Lane 4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="button">Save Changes</button>
+    </div>
+  </div>
+  
+  <div class="version">v1.0.0</div>
 
   <script>
-    const songSelector = document.getElementById('songSelector');
-    const previewButton = document.getElementById('previewButton');
-    const playChartButton = document.getElementById('playChartButton');
-    const previewAudio = document.getElementById('previewAudio');
-
-    // Preview the selected song
-    previewButton.addEventListener('click', () => {
-      previewAudio.src = songSelector.value;
-      previewAudio.play();
+    // Show loading progress
+    window.onload = function() {
+      const progress = document.getElementById('loading-progress');
+      let width = 0;
+      const interval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(interval);
+        } else {
+          width += 5;
+          progress.style.width = width + '%';
+        }
+      }, 100);
+    };
+    
+    // Play Game button event
+    document.getElementById('play-game').addEventListener('click', function() {
+      // Redirect to the game page
+      window.location.href = 'game.html'; // Change to your game page
     });
-
-    // Play the chart associated with the selected song
-    playChartButton.addEventListener('click', () => {
-      const selectedOption = songSelector.options[songSelector.selectedIndex];
-      const chartFile = selectedOption.getAttribute('data-chart');
-      if (chartFile) {
-        loadAndPlayChart(chartFile);
-      } else {
-        alert('No chart available for the selected song.');
-      }
+    
+    // Chart Editor button event
+    document.getElementById('chart-editor').addEventListener('click', function() {
+      // Redirect to the chart editor page
+      window.location.href = 'editor.html'; // Change to your editor page
     });
-
-    // Function to load and play the chart
-    function loadAndPlayChart(chartFile) {
-      fetch(chartFile)
-        .then(response => response.json())
-        .then(chartData => {
-          console.log('Loaded chart:', chartData);
-          // Implement your chart-playing logic here
-          alert(`Playing chart: ${chartFile}`);
-        })
-        .catch(error => {
-          console.error('Error loading chart:', error);
-          alert('Failed to load the chart.');
-        });
-    }
+    
+    // Options button event
+    document.getElementById('options').addEventListener('click', function() {
+      document.getElementById('options-modal').style.display = 'flex';
+    });
+    
+    // Close modal button
+    const closeButtons = document.querySelectorAll('.close-button');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        this.closest('.modal').style.display = 'none';
+      });
+    });
+    
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function(event) {
+      const modals = document.querySelectorAll('.modal');
+      modals.forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
+    
+    // Any key to start functionality
+    document.addEventListener('keydown', function() {
+      // Could trigger start animation or redirect
+      document.querySelector('.footer').textContent = 'Loading game...';
+      setTimeout(() => {
+        window.location.href = 'game.html'; // Auto-redirect after key press
+      }, 1000);
+    });
+    
+    // Song item click event
+    const songItems = document.querySelectorAll('.song-item');
+    songItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const songTitle = this.querySelector('.song-title').textContent;
+        localStorage.setItem('selectedSong', songTitle);
+        window.location.href = 'game.html'; // Redirect to game with selected song
+      });
+    });
   </script>
 </body>
 </html>
