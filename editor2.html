@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chart Editor - Simple Rhythm Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    textarea {
+      width: 80%;
+      height: 150px;
+      margin: 20px 0;
+      background-color: #111;
+      color: #0ff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 16px;
+      box-shadow: 0 0 10px #0ff inset;
+    }
+    button, select {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #111;
+      color: #0ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff inset;
+      margin: 10px;
+    }
+    button:hover, select:hover {
+      background-color: #222;
+    }
+    audio {
+      margin-top: 20px;
+    }
+    .chart-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 80%;
+      height: 200px;
+      background-color: #222;
+      border-radius: 8px;
+      margin: 20px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .note {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #0ff;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chart Editor</h1>
+  <select id="songSelector">
+    <option value="song.mp3">Cool Beat</option>
+    <option value="song2.mp3">Epic Jam</option>
+    <option value="song3.mp3">Chill Vibe</option>
+    <option value="song4.mp3">Energetic Tune</option>
+  </select>
+  <audio id="songAudio" controls></audio>
+  <p>Press <strong>D</strong>, <strong>F</strong>, <strong>J</strong>, or <strong>K</strong> to create notes.</p>
+  <div class="chart-visual" id="chartVisual"></div>
+  <textarea id="chartEditor" readonly placeholder="Chart data will appear here..."></textarea>
+  <button id="exportButton">Export Chart</button>
+  <button onclick="location.href='test.html'">Back to Game</button>
+
+  <script>
+    const chartEditor = document.getElementById('chartEditor');
+    const exportButton = document.getElementById('exportButton');
+    const songAudio = document.getElementById('songAudio');
+    const chartVisual = document.getElementById('chartVisual');
+    const songSelector = document.getElementById('songSelector');
+
+    let chartData = [];
+    let startTime = null;
+
+    // Map keys to note types and positions
+    const keyMap = {
+      d: { note: "d", position: 50 },
+      f: { note: "f", position: 150 },
+      j: { note: "j", position: 250 },
+      k: { note: "k", position: 350 },
+    };
+
+    // Load the selected song
+    songSelector.addEventListener("change", () => {
+      songAudio.src = songSelector.value;
+      songAudio.load();
+    });
+
+    // Record key presses as notes
+    document.addEventListener("keydown", (event) => {
+      if (!startTime || songAudio.paused) return;
+
+      const key = event.key.toLowerCase();
+      if (keyMap[key]) {
+        const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
+        chartData.push({ time: timestamp.toFixed(2), note: keyMap[key].note });
+        chartEditor.value += `Time: ${timestamp.toFixed(2)}, Note: ${keyMap[key].note}\n`;
+
+        // Add a visual note
+        const noteElement = document.createElement("div");
+        noteElement.className = "note";
+        noteElement.style.left = `${keyMap[key].position}px`;
+        noteElement.style.bottom = "0px";
+        chartVisual.appendChild(noteElement);
+      }
+    });
+
+    // Start recording when the song starts playing
+    songAudio.addEventListener("play", () => {
+      startTime = Date.now();
+    });
+
+    // Stop recording when the song is paused or ends
+    songAudio.addEventListener("pause", () => {
+      startTime = null;
+    });
+
+    songAudio.addEventListener("ended", () => {
+      startTime = null;
+    });
+
+    // Export chart data to a text file
+    exportButton.addEventListener("click", () => {
+      if (chartData.length === 0) {
+        alert("No chart data to export.");
+        return;
+      }
+
+      // Format chart data as plain text
+      const textData = chartData
+        .map((note) => `Time: ${note.time}, Note: ${note.note}`)
+        .join("\n");
+
+      const blob = new Blob([textData], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "chart.txt";
+      link.click();
+    });
+  </script>
+</body>
+</html>
