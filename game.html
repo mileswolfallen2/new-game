@@ -631,27 +631,19 @@
       const maxScore = maxPossibleScore > 0 ? maxPossibleScore : 1; // Prevent division by zero
       const rating = calculateRating(score, maxScore);
       const percentage = (score / maxScore) * 100;
-      
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#121212';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       ctx.font = '40px Arial';
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
 
-      if (percentage < 50) {
-        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.font = '20px Arial';
-        ctx.fillText(`You scored less than 50%!`, canvas.width / 2, canvas.height / 2 - 20);
-        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
-        ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 60);
-      } else {
-        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.font = '20px Arial';
-        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20);
-        ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
-      }
+      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+      ctx.font = '20px Arial';
+      ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
 
       const tryAgainButton = document.createElement('button');
       tryAgainButton.textContent = 'Try Again';
