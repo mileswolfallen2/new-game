@@ -154,6 +154,8 @@
     let score = 0;
     let notesHit = 0;
     let missedNotes = 0;
+
+    // Add feedback variables
     let feedback = "";
     let feedbackTimer = 0;
 
@@ -354,10 +356,8 @@
         const yStart = hitZoneY - timeToStart * 100 * noteSpeed;
         const yEnd = hitZoneY - timeToEnd * 100 * noteSpeed;
 
-        // Check if the slider is active (player is holding the key)
         const isActive = keyStates[slider.key] && now >= slider.startTime && now <= slider.endTime;
 
-        // Ensure the slider only disappears after the full duration
         if (now > slider.endTime && slider.active && !slider.hit) {
           slider.hit = true;
           score += 500; // Full slider completion points
@@ -369,10 +369,18 @@
         if (yEnd > canvas.height || yStart < -40) continue;
         drawSlider(lanesMap[slider.key], yStart, yStart - yEnd, isActive);
 
-        // Mark slider as active if the key is held during its duration
         if (isActive) {
           slider.active = true;
         }
+      }
+
+      // Display feedback
+      if (feedbackTimer > 0) {
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.fillText(feedback, canvas.width / 2, hitZoneY - 50);
+        feedbackTimer--;
       }
 
       if (gameStarted) requestAnimationFrame(gameLoop);
@@ -553,29 +561,44 @@
       return "D";
     }
 
+    // Update the checkHit function to provide feedback
     function checkHit(key) {
       const now = audio.currentTime;
       for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
-        if (!note.hit && note.key === key && Math.abs(note.time - now) < 0.3) {
+        if (!note.hit && note.key === key) {
+          const timeDifference = Math.abs(note.time - now);
+
+          // Determine feedback based on timing
+          if (timeDifference < 0.1) {
+            feedback = "Perfect!";
+            score += 300; // Perfect score
+          } else if (timeDifference < 0.2) {
+            feedback = "Good!";
+            score += 200; // Good score
+          } else if (timeDifference < 0.3) {
+            feedback = "Bad!";
+            score += 100; // Bad score
+          } else {
+            continue; // Too far away, skip
+          }
+
           note.hit = true;
-          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
-
-          // Update stats
-          score += 300; // Add points for a hit
           notesHit++;
+          feedbackTimer = 30; // Display feedback for 30 frames
+          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
           updateStats();
-
           return;
         }
       }
 
       // If no note was hit, count it as a miss
+      feedback = "Miss!";
       missedNotes++;
+      feedbackTimer = 30; // Display feedback for 30 frames
       updateStats();
     }
 
-    // Update the checkSliderHit function to provide feedback
     function checkSliderHit(key) {
       const now = audio.currentTime;
       for (let i = 0; i < sliders.length; i++) {
@@ -608,27 +631,19 @@
       const maxScore = maxPossibleScore > 0 ? maxPossibleScore : 1; // Prevent division by zero
       const rating = calculateRating(score, maxScore);
       const percentage = (score / maxScore) * 100;
-      
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#121212';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       ctx.font = '40px Arial';
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
 
-      if (percentage < 50) {
-        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.font = '20px Arial';
-        ctx.fillText(`You scored less than 50%!`, canvas.width / 2, canvas.height / 2 - 20);
-        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
-        ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 60);
-      } else {
-        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-        ctx.font = '20px Arial';
-        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20);
-        ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
-      }
+      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+      ctx.font = '20px Arial';
+      ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
 
       const tryAgainButton = document.createElement('button');
       tryAgainButton.textContent = 'Try Again';
