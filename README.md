@@ -13,7 +13,7 @@ This project is a rhythm-based game where players can select songs and interact 
 ## Setup
 1. Clone this repository or download the project files.
 2. Open `index.html` in a web browser to start the game.
-3. Optionally, open `settings.html` to preview songs before playing.
+3. Optionally, open `settings.html` to preview songs before playing. this isint true anemore
 
 ## Usage
 - **Game Interface (`index.html`)**:
