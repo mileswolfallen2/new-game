@@ -82,7 +82,7 @@
     <option value="song2.mp3">Epic Jam</option>
     <option value="song3.mp3">Chill Vibe</option>
     <option value="song4.mp3">Energetic Tune</option>
-    <option value="99.mp3">Mellow Melody</option>
+    <option value="song5.mp3">Mellow Melody</option>
   </select>
   <audio id="songAudio" controls></audio>
   <p>Press <strong>D</strong>, <strong>F</strong>, <strong>J</strong>, or <strong>K</strong> to create notes.</p>
@@ -123,7 +123,17 @@
 
       const key = event.key.toLowerCase();
       if (keyMap[key] && !keyHoldStart[key]) {
-        keyHoldStart[key] = Date.now(); // Record the time the key was pressed
+        keyHoldStart[key] = { startTime: Date.now(), sliderElement: null };
+
+        // Create a visual slider placeholder
+        const sliderElement = document.createElement("div");
+        sliderElement.className = "slider";
+        sliderElement.style.left = `${keyMap[key].position}px`;
+        sliderElement.style.bottom = "0px";
+        sliderElement.style.height = "0px";
+        chartVisual.appendChild(sliderElement);
+
+        keyHoldStart[key].sliderElement = sliderElement;
       }
     });
 
@@ -133,12 +143,12 @@
 
       const key = event.key.toLowerCase();
       if (keyMap[key] && keyHoldStart[key]) {
-        const holdDuration = Date.now() - keyHoldStart[key];
+        const holdDuration = Date.now() - keyHoldStart[key].startTime;
         const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
 
         if (holdDuration > holdThreshold) {
           // Create a slider
-          const sliderStartTime = (keyHoldStart[key] - startTime) / 1000;
+          const sliderStartTime = (keyHoldStart[key].startTime - startTime) / 1000;
           chartData.push({
             type: "slider",
             startTime: sliderStartTime.toFixed(2),
@@ -147,13 +157,9 @@
           });
           chartEditor.value += `Slider: StartTime: ${sliderStartTime.toFixed(2)}, EndTime: ${timestamp.toFixed(2)}, Key: ${keyMap[key].note}\n`;
 
-          // Add visual slider
-          const sliderElement = document.createElement("div");
-          sliderElement.className = "slider";
-          sliderElement.style.left = `${keyMap[key].position}px`;
-          sliderElement.style.bottom = "0px";
+          // Finalize slider visual
+          const sliderElement = keyHoldStart[key].sliderElement;
           sliderElement.style.height = `${(timestamp - sliderStartTime) * 100}px`;
-          chartVisual.appendChild(sliderElement);
         } else {
           // Create regular note
           chartData.push({
@@ -168,6 +174,11 @@
           noteElement.style.left = `${keyMap[key].position}px`;
           noteElement.style.bottom = "0px";
           chartVisual.appendChild(noteElement);
+
+          // Remove unfinished slider visual
+          if (keyHoldStart[key].sliderElement) {
+            chartVisual.removeChild(keyHoldStart[key].sliderElement);
+          }
         }
 
         delete keyHoldStart[key];
@@ -197,7 +208,11 @@
 
       // Format chart data as plain text
       const textData = chartData
-        .map((note) => `Time: ${note.time}, Note: ${note.note}`)
+        .map((note) =>
+          note.type === "slider"
+            ? `Slider: StartTime: ${note.startTime}, EndTime: ${note.endTime}, Key: ${note.note}`
+            : `Time: ${note.time}, Note: ${note.note}`
+        )
         .join("\n");
 
       const blob = new Blob([textData], { type: "text/plain" });
