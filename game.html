@@ -14,13 +14,13 @@
     }
     #menu {
       position: absolute;
-      top: 20px;
+      top: 10px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 12px;
+      gap: 8px;
       background: rgba(0, 0, 0, 0.7);
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 12px;
       box-shadow: 0 0 10px #0ff;
       z-index: 10;
@@ -67,7 +67,7 @@
     }
     canvas {
       display: block;
-      margin: 80px auto;
+      margin: 0 auto;
       background: #121212;
       box-shadow: 0 0 40px #0ff;
       border-radius: 16px;
@@ -86,6 +86,29 @@
     }
     #stats p {
       margin: 5px 0;
+    }
+    .touch-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    .touch-button {
+      width: 60px;
+      height: 60px;
+      background: #111;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #0ff inset;
+      color: #0ff;
+      font-size: 20px;
+      text-align: center;
+      line-height: 60px;
+      cursor: pointer;
+    }
+    .touch-button:active {
+      background: #222;
     }
   </style>
 </head>
@@ -115,6 +138,12 @@
   </div>
   <audio id="song" crossorigin="anonymous"></audio>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div class="touch-controls">
+    <div class="touch-button" data-key="d">D</div>
+    <div class="touch-button" data-key="f">F</div>
+    <div class="touch-button" data-key="j">J</div>
+    <div class="touch-button" data-key="k">K</div>
+  </div>
 
   <script>
     // DOM Elements
@@ -126,6 +155,27 @@
     const pauseMenu = document.getElementById('pauseMenu');
     const resumeButton = document.getElementById('resumeButton');
     const noteSpeedInput = document.getElementById('noteSpeed');
+    const touchButtons = document.querySelectorAll('.touch-button');
+
+    // Adjust canvas size for mobile
+    function resizeCanvas() {
+      canvas.width = window.innerWidth * 0.9;
+      canvas.height = window.innerHeight * 0.7;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Handle touch input
+    touchButtons.forEach(button => {
+      button.addEventListener('touchstart', (e) => {
+        const key = e.target.dataset.key;
+        handleKeyDown({ key });
+      });
+      button.addEventListener('touchend', (e) => {
+        const key = e.target.dataset.key;
+        keyStates[key] = false;
+      });
+    });
 
     // Game Variables
     const songCharts = {
