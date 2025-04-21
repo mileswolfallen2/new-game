@@ -101,6 +101,7 @@
     let chartData = [];
     let startTime = null;
     let keyHoldStart = {}; // Tracks the start time of key presses
+    let holdThreshold = 300; // 300 milliseconds threshold for creating sliders
 
     // Map keys to note types and positions
     const keyMap = {
@@ -124,19 +125,6 @@
       if (keyMap[key] && !keyHoldStart[key]) {
         keyHoldStart[key] = Date.now(); // Record the time the key was pressed
       }
-
-      if (keyMap[key]) {
-        const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
-        chartData.push({ time: timestamp.toFixed(2), note: keyMap[key].note });
-        chartEditor.value += `Time: ${timestamp.toFixed(2)}, Note: ${keyMap[key].note}\n`;
-
-        // Add a visual note
-        const noteElement = document.createElement("div");
-        noteElement.className = "note";
-        noteElement.style.left = `${keyMap[key].position}px`;
-        noteElement.style.bottom = "0px";
-        chartVisual.appendChild(noteElement);
-      }
     });
 
     // Record key releases to create sliders
@@ -148,30 +136,33 @@
         const holdDuration = Date.now() - keyHoldStart[key];
         const timestamp = (Date.now() - startTime) / 1000; // Time in seconds
 
-        if (holdDuration > 200) {
+        if (holdDuration > holdThreshold) {
           // Create a slider
           const sliderStartTime = (keyHoldStart[key] - startTime) / 1000;
           chartData.push({
             type: "slider",
             startTime: sliderStartTime.toFixed(2),
             endTime: timestamp.toFixed(2),
-            note: keyMap[key].note,
+            note: keyMap[key].note
           });
-          chartEditor.value += `Slider: StartTime: ${sliderStartTime.toFixed(2)}, EndTime: ${timestamp.toFixed(2)}, Note: ${keyMap[key].note}\n`;
+          chartEditor.value += `Slider: StartTime: ${sliderStartTime.toFixed(2)}, EndTime: ${timestamp.toFixed(2)}, Key: ${keyMap[key].note}\n`;
 
-          // Add a visual slider
+          // Add visual slider
           const sliderElement = document.createElement("div");
-          sliderElement.className = "note slider";
+          sliderElement.className = "slider";
           sliderElement.style.left = `${keyMap[key].position}px`;
           sliderElement.style.bottom = "0px";
           sliderElement.style.height = `${(timestamp - sliderStartTime) * 100}px`;
           chartVisual.appendChild(sliderElement);
         } else {
-          // Create a regular note
-          chartData.push({ time: timestamp.toFixed(2), note: keyMap[key].note });
+          // Create regular note
+          chartData.push({
+            time: timestamp.toFixed(2),
+            note: keyMap[key].note
+          });
           chartEditor.value += `Time: ${timestamp.toFixed(2)}, Note: ${keyMap[key].note}\n`;
 
-          // Add a visual note
+          // Add visual note
           const noteElement = document.createElement("div");
           noteElement.className = "note";
           noteElement.style.left = `${keyMap[key].position}px`;
@@ -179,7 +170,7 @@
           chartVisual.appendChild(noteElement);
         }
 
-        delete keyHoldStart[key]; // Clear the key hold start time
+        delete keyHoldStart[key];
       }
     });
 
