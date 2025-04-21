@@ -495,4 +495,3 @@ Time: 159.17, Note: k
 Time: 160.73, Note: d
 Time: 160.75, Note: j
 Time: 161.32, Note: k
-Time: 161.79, Note: k

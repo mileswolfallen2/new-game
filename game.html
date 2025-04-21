@@ -103,7 +103,7 @@
   <div id="pauseMenu">
     <h2>Pause Menu</h2>
     <label for="noteSpeed">Note Speed:</label>
-    <input type="number" id="noteSpeed" value="3" min="1" max="5" step="0.1" />
+    <input type="number" id="noteSpeed" value="5" min="1" max="10" step="0.1" />
     <br />
     <button id="resumeButton">Resume</button>
   </div>
@@ -292,19 +292,51 @@
       audio.pause();
     }
 
+    // Update the drawSlider function to include a larger start zone and better feedback
+    function drawSlider(x, y, length, isActive) {
+      // Change color if the slider is active
+      ctx.strokeStyle = isActive ? '#ff0' : '#0ff';
+      ctx.lineWidth = isActive ? 6 : 4;
+
+      // Draw the slider line
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y - length);
+      ctx.stroke();
+
+      // Add glowing effect for active sliders
+      if (isActive) {
+        ctx.shadowColor = '#ff0';
+        ctx.shadowBlur = 20;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw slider ends for better visibility
+      ctx.fillStyle = isActive ? '#ff0' : '#0ff';
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2); // Larger start zone
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x, y - length, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Update the gameLoop function to ensure the slider disappears only after full use
     function gameLoop() {
       const now = audio.currentTime;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawHitZone();
       drawHitEffects();
 
+      // Draw notes
       for (let note of notes) {
         if (note.hit) continue;
         const timeToNote = note.time - now;
         const y = hitZoneY - timeToNote * 100 * noteSpeed;
 
         if (y > canvas.height) {
-          // Mark note as missed
           note.hit = true;
           missedNotes++;
           updateStats();
@@ -315,10 +347,37 @@
         drawNote(lanesMap[note.key], y);
       }
 
+      // Draw sliders
+      for (let slider of sliders) {
+        const timeToStart = slider.startTime - now;
+        const timeToEnd = slider.endTime - now;
+        const yStart = hitZoneY - timeToStart * 100 * noteSpeed;
+        const yEnd = hitZoneY - timeToEnd * 100 * noteSpeed;
+
+        // Check if the slider is active (player is holding the key)
+        const isActive = keyStates[slider.key] && now >= slider.startTime && now <= slider.endTime;
+
+        // Ensure the slider only disappears after the full duration
+        if (now > slider.endTime && slider.active && !slider.hit) {
+          slider.hit = true;
+          score += 500; // Full slider completion points
+          hitEffects.push({ x: lanesMap[slider.key], y: hitZoneY, radius: 20, alpha: 1 });
+          updateStats();
+          continue;
+        }
+
+        if (yEnd > canvas.height || yStart < -40) continue;
+        drawSlider(lanesMap[slider.key], yStart, yStart - yEnd, isActive);
+
+        // Mark slider as active if the key is held during its duration
+        if (isActive) {
+          slider.active = true;
+        }
+      }
+
       if (gameStarted) requestAnimationFrame(gameLoop);
     }
 
-    // Drawing Functions
     function drawNote(x, y) {
       ctx.fillStyle = '#0ff';
       ctx.beginPath();
@@ -329,25 +388,6 @@
       ctx.strokeStyle = '#008888';
       ctx.lineWidth = 2;
       ctx.stroke();
-    }
-
-    function drawSlider(x, y, length) {
-      ctx.strokeStyle = '#0ff';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x, y - length);
-      ctx.stroke();
-      
-      // Add slider ends for better visibility
-      ctx.fillStyle = '#0ff';
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fill();
-      
-      ctx.beginPath();
-      ctx.arc(x, y - length, 6, 0, Math.PI * 2);
-      ctx.fill();
     }
 
     function drawHitZone() {
@@ -458,52 +498,47 @@
       sliders.push({ startTime: 12, endTime: 13, key: 'k', hit: false });
     }
 
+    // Update the slider object structure to include an "active" property
     function parseChart(data) {
       try {
         notes = [];
         sliders = [];
-        
-        if (!data || typeof data !== 'string') {
-          console.error("Invalid chart data");
-          createDummyChart();
-          return;
-        }
-        
+
         const lines = data.split('\n');
-        
         for (const line of lines) {
           if (!line || line.trim() === '') continue;
-          
+
           // Parse notes
           const noteMatch = line.match(/Time: ([\d.]+), Note: (\w+)/);
           if (noteMatch && lanesMap[noteMatch[2]]) {
-            notes.push({ 
-              time: parseFloat(noteMatch[1]), 
-              key: noteMatch[2], 
-              hit: false 
+            notes.push({
+              time: parseFloat(noteMatch[1]),
+              key: noteMatch[2],
+              hit: false,
             });
             continue;
           }
-          
+
           // Parse sliders
-          const sliderMatch = line.match(/Slider: StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/);
+          const sliderMatch = line.match(
+            /Slider: StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/
+          );
           if (sliderMatch && lanesMap[sliderMatch[3]]) {
-            sliders.push({ 
-              startTime: parseFloat(sliderMatch[1]), 
-              endTime: parseFloat(sliderMatch[2]), 
-              key: sliderMatch[3], 
-              hit: false 
+            sliders.push({
+              startTime: parseFloat(sliderMatch[1]),
+              endTime: parseFloat(sliderMatch[2]),
+              key: sliderMatch[3],
+              hit: false,
+              active: false, // New property to track if the slider is being used
             });
           }
         }
-        
-        // If no valid notes were parsed, create dummy ones
+
         if (notes.length === 0 && sliders.length === 0) {
-          console.warn("No valid notes or sliders found in chart");
           createDummyChart();
         }
       } catch (error) {
-        console.error("Error parsing chart:", error);
+        console.error('Error parsing chart:', error);
         createDummyChart();
       }
     }
@@ -540,19 +575,20 @@
       updateStats();
     }
 
+    // Update the checkSliderHit function to provide feedback
     function checkSliderHit(key) {
       const now = audio.currentTime;
       for (let i = 0; i < sliders.length; i++) {
         const slider = sliders[i];
-        // Slightly more lenient slider hit window
-        if (!slider.hit && slider.key === key && 
-            now >= slider.startTime - 0.25 && 
-            now <= slider.endTime + 0.25) {
+        if (
+          !slider.hit &&
+          slider.key === key &&
+          now >= slider.startTime &&
+          now <= slider.endTime
+        ) {
           slider.hit = true;
           score += 500; // Slider hit points
-          feedback = "Slider Hit!";
-          feedbackTimer = 30;
-          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 15, alpha: 1 });
+          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 20, alpha: 1 }); // Larger effect for sliders
           return true;
         }
       }
