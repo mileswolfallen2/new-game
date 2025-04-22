@@ -229,6 +229,34 @@
       menu.classList.remove('hidden');
     }
 
+    // Add these functions after your existing variables
+
+    function saveNoteSpeeds(speed) {
+      document.cookie = `noteSpeed=${speed};max-age=31536000;path=/`; // Saves for 1 year
+    }
+
+    function loadNoteSpeed() {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'noteSpeed') {
+          return parseFloat(value) || 2; // Default to 2 if parsing fails
+        }
+      }
+      return 2; // Default value if no cookie found
+    }
+
+    // Update the noteSpeedInput event listener
+    noteSpeedInput.addEventListener('change', (e) => {
+      const newSpeed = parseFloat(e.target.value);
+      noteSpeed = newSpeed;
+      saveNoteSpeeds(newSpeed);
+    });
+
+    // Add this line right after your variables initialization
+    noteSpeed = loadNoteSpeed();
+    noteSpeedInput.value = noteSpeed; // Update input to match loaded value
+
     // Event Listeners - Fix the keydown handler
     document.removeEventListener('keydown', handleKeyDown); // Remove any existing listeners
     document.addEventListener('keydown', handleKeyDown);
@@ -247,9 +275,6 @@
     
     playButton.addEventListener('click', handlePlayButton);
     resumeButton.addEventListener('click', resumeGame);
-    noteSpeedInput.addEventListener('change', (e) => {
-      noteSpeed = parseFloat(e.target.value);
-    });
 
     // Game Functions
     function handleKeyDown(e) {
@@ -403,12 +428,20 @@
       ctx.fill();
     }
 
-    // Update the gameLoop function to ensure the slider disappears only after full use
+    // Update the gameLoop function to check for game over condition
     function gameLoop() {
       const now = audio.currentTime;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawHitZone();
       drawHitEffects();
+
+      // Check if song is finished and all notes are processed
+      const allNotesProcessed = notes.every(note => note.hit) && 
+                              sliders.every(slider => slider.hit);
+      if (audio.ended && allNotesProcessed) {
+          showGameOverScreen();
+          return; // Stop the game loop
+      }
 
       // Draw notes
       for (let note of notes) {
@@ -703,9 +736,27 @@
       pauseMenu.style.display = 'none';
     }
 
+    // Update the showGameOverScreen function
     function showGameOverScreen() {
+      // Remove any existing try again button first
+      const existingButton = document.querySelector('.try-again-button');
+      if (existingButton) {
+        document.body.removeChild(existingButton);
+      }
+
+      // Cancel any existing animation frame
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
+      // Clear the canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#121212';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
       const maxPossibleScore = notes.length * 300 + sliders.length * 500;
-      const maxScore = maxPossibleScore > 0 ? maxPossibleScore : 1; // Prevent division by zero
+      const maxScore = maxPossibleScore > 0 ? maxPossibleScore : 1;
       const rating = calculateRating(score, maxScore);
       const percentage = (score / maxScore) * 100;
 
@@ -713,37 +764,71 @@
       ctx.fillStyle = '#121212';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = '40px Arial';
-      ctx.fillStyle = '#fff';
+      // Draw rating first (make it big and centered)
+      ctx.font = 'bold 120px Arial';
+      ctx.fillStyle = getRatingColor(rating);
       ctx.textAlign = 'center';
+      ctx.shadowColor = getRatingColor(rating);
+      ctx.shadowBlur = 20;
+      ctx.fillText(rating, canvas.width / 2, canvas.height / 2 - 20);
+      ctx.shadowBlur = 0;
 
-      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
-      ctx.font = '20px Arial';
-      ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 20);
-      ctx.fillText(`Rating: ${rating}`, canvas.width / 2, canvas.height / 2 + 20);
-
+      // Draw other stats
+      ctx.font = '24px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('Final Score: ' + score, canvas.width / 2, canvas.height / 2 + 60);
+      ctx.fillText(`Accuracy: ${percentage.toFixed(2)}%`, canvas.width / 2, canvas.height / 2 + 90);
+      
+      // Create try again button with a class for easier removal
       const tryAgainButton = document.createElement('button');
       tryAgainButton.textContent = 'Try Again';
+      tryAgainButton.className = 'try-again-button';  // Add class for identification
       tryAgainButton.style.position = 'absolute';
-      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 100}px`;
+      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 120}px`;
       tryAgainButton.style.left = `${canvas.offsetLeft + canvas.width / 2}px`;
       tryAgainButton.style.transform = 'translateX(-50%)';
-      tryAgainButton.style.padding = '10px 20px';
-      tryAgainButton.style.fontSize = '16px';
+      tryAgainButton.style.padding = '12px 30px';
+      tryAgainButton.style.fontSize = '18px';
       tryAgainButton.style.border = 'none';
       tryAgainButton.style.borderRadius = '8px';
       tryAgainButton.style.backgroundColor = '#111';
       tryAgainButton.style.color = '#0ff';
       tryAgainButton.style.cursor = 'pointer';
-      tryAgainButton.style.boxShadow = '0 0 10px #0ff inset';
+      tryAgainButton.style.boxShadow = '0 0 10px #0ff';
 
       document.body.appendChild(tryAgainButton);
+      
+      // Update the click handler to ensure button is removed
       tryAgainButton.addEventListener('click', () => {
-        document.body.removeChild(tryAgainButton);
+        if (tryAgainButton.parentNode) {
+          tryAgainButton.parentNode.removeChild(tryAgainButton);
+        }
         resetGame();
       });
     }
+
+    // Add this new helper function to get rating colors
+    function getRatingColor(rating) {
+      switch(rating) {
+        case 'S+': return '#ffd700'; // Gold
+        case 'S': return '#00ffff';  // Cyan
+        case 'A': return '#00ff00';  // Green
+        case 'B': return '#4169e1';  // Royal Blue
+        case 'C': return '#ff8c00';  // Dark Orange
+        case 'D': return '#ff0000';  // Red
+        default: return '#ffffff';   // White
+      }
+    }
     
+    // Add event listener for song end
+    audio.addEventListener('ended', () => {
+      const allNotesProcessed = notes.every(note => note.hit) && 
+                              sliders.every(slider => slider.hit);
+      if (allNotesProcessed) {
+          showGameOverScreen();
+      }
+    });
+
     // Initialize key states
     dfjkKeys.forEach(key => keyStates[key] = false);
     keyStates['escape'] = false;
