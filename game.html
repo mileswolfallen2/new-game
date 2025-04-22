@@ -22,11 +22,13 @@
       gap: 20px;
       background: rgba(0, 0, 0, 0.9);
       padding: 30px 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 30px #0ff;
+      border-radius: 24px;  /* Increased corner radius */
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+      overflow: hidden;  /* Ensure content doesn't overflow rounded corners */
       z-index: 100;
       text-align: center;
-      min-width: 300px;
+      min-width: 400px;
+      backdrop-filter: blur(10px);
     }
 
     #menu.hidden {
@@ -47,7 +49,7 @@
       background: #111;
       color: #fff;
       border: 2px solid #0ff;
-      border-radius: 10px;
+      border-radius: 16px;  /* Increased corner radius */
       cursor: pointer;
       transition: all 0.3s ease;
     }
@@ -61,6 +63,7 @@
       background: #111;
       color: #fff;
       padding: 10px;
+      border-radius: 12px;  /* Add corner radius to options */
     }
 
     #playButton {
@@ -70,7 +73,7 @@
       background: #0ff;
       color: #000;
       border: none;
-      border-radius: 10px;
+      border-radius: 16px;  /* Increased corner radius */
       cursor: pointer;
       transition: all 0.3s ease;
       font-weight: bold;
@@ -89,27 +92,111 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.9);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px #0ff;
+      background: rgba(0, 0, 0, 0.95);
+      padding: 40px;
+      border-radius: 24px;
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
       text-align: center;
       z-index: 20;
+      min-width: 300px;
     }
-    #pauseMenu button, #pauseMenu input {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #111;
+
+    #pauseMenu h2 {
       color: #0ff;
+      margin: 0 0 30px 0;
+      font-size: 2em;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    .speed-control {
+      margin: 20px auto;
+      width: 80%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .speed-control label {
+      display: block;
+      margin-bottom: 20px;
+      color: #0ff;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    #noteSpeed {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: #111;
+      border-radius: 3px;
+      outline: none;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+      margin: 0 auto;
+      display: block;
+    }
+
+    #noteSpeed:hover {
+      opacity: 1;
+    }
+
+    #noteSpeed::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #0ff;
+      border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 0 10px #0ff inset;
+      box-shadow: 0 0 10px #0ff;
+      transition: all 0.3s ease;
     }
-    #pauseMenu button:hover, #pauseMenu input:hover {
-      background-color: #222;
+
+    #noteSpeed::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #0ff;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff;
+      transition: all 0.3s ease;
     }
+
+    #noteSpeed::-webkit-slider-thumb:hover {
+      background: #fff;
+      box-shadow: 0 0 15px #0ff;
+      transform: scale(1.1);
+    }
+
+    #noteSpeed::-moz-range-thumb:hover {
+      background: #fff;
+      box-shadow: 0 0 15px #0ff;
+      transform: scale(1.1);
+    }
+
+    #resumeButton {
+      margin-top: 30px;
+      padding: 15px 40px;
+      font-size: 18px;
+      background: #0ff;
+      color: #000;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    #resumeButton:hover {
+      background: #00cccc;
+      box-shadow: 0 0 20px #0ff;
+      transform: scale(1.05);
+    }
+
     select, button {
       padding: 10px 20px;
       font-size: 16px;
@@ -145,25 +232,86 @@
     #stats p {
       margin: 5px 0;
     }
+
+    #songList {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .song-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid #0ff;
+      border-radius: 16px;  /* Increased corner radius */
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .song-item:hover {
+      background: rgba(0, 255, 255, 0.1);
+      transform: translateX(10px);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+
+    .song-item.selected {
+      background: rgba(0, 255, 255, 0.2);
+      border-color: #ff0;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+    }
+
+    .song-info {
+      margin-left: 15px;
+    }
+
+    .song-title {
+      font-size: 1.2em;
+      color: #0ff;
+      margin: 0 0 5px 0;
+    }
+
+    .song-difficulty {
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    .song-icon {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 255, 255, 0.1);
+      border-radius: 12px;  /* Increased corner radius */
+    }
+
+    .song-icon i {
+      font-size: 24px;
+      color: #0ff;
+    }
   </style>
 </head>
 <body>
   <div id="menu">
     <h1>Simple Rhythm Game</h1>
     <select id="songSelector">
-      <option value="song.mp3">song1</option>
-      <option value="song2.mp3">allmyselas</option>
-      <option value="song3.mp3">3ds</option>
-      <option value="song4.mp3">song4</option>
-      <option value="song5.mp3">99</option>
+      <option value="" disabled selected>Select a Song ▾</option>
+      <option value="song.mp3">Neon Dreams</option>
+      <option value="song2.mp3">All My Stars</option>
+      <option value="song3.mp3">Digital Sunset</option>
+      <option value="song4.mp3">Cyber Rush</option>
+      <option value="song5.mp3">Night Drive</option>
     </select>
     <button id="playButton">Play</button>
   </div>
   <div id="pauseMenu">
     <h2>Pause Menu</h2>
-    <label for="noteSpeed">Note Speed:</label>
-    <input type="number" id="noteSpeed" value="5" min="1" max="10" step="0.1" />
-    <br />
+    <div class="speed-control">
+      <label for="noteSpeed">Note Speed: <span id="speedValue">5</span></label>
+      <input type="range" id="noteSpeed" value="5" min="1" max="10" step="0.1" />
+    </div>
     <button id="resumeButton">Resume</button>
   </div>
   <div id="stats">
@@ -190,9 +338,8 @@
     const songCharts = {
       "song.mp3": "./charts/song1.txt",
       "song2.mp3": "./charts/song2.txt",
-      "song3.mp3": "./charts/song3.txt", // Add a comma here
+      "song3.mp3": "./charts/song3.txt",
       "song4.mp3": "./charts/song4.txt",
-      "song5.mp3": "./charts/song5.txt"
     };
     const hitZoneY = 500;
     let noteSpeed = 2;
@@ -202,9 +349,8 @@
     // Key states to prevent key repeat issues
     const keyStates = {};
     
-    // Animation frame ID for proper animation control
+    // Animation frame ID for proper animation controls
     let animationFrameId = null;
-
     let notes = [];
     let sliders = [];
     let hitEffects = [];
@@ -230,7 +376,6 @@
     }
 
     // Add these functions after your existing variables
-
     function saveNoteSpeeds(speed) {
       document.cookie = `noteSpeed=${speed};max-age=31536000;path=/`; // Saves for 1 year
     }
@@ -246,12 +391,16 @@
       return 2; // Default value if no cookie found
     }
 
-    // Update the noteSpeedInput event listener
-    noteSpeedInput.addEventListener('change', (e) => {
+    // Replace the existing noteSpeedInput event listener
+    noteSpeedInput.addEventListener('input', (e) => {
       const newSpeed = parseFloat(e.target.value);
+      document.getElementById('speedValue').textContent = newSpeed.toFixed(1);
       noteSpeed = newSpeed;
       saveNoteSpeeds(newSpeed);
     });
+
+    // Add this line after loading the note speed
+    document.getElementById('speedValue').textContent = noteSpeed.toFixed(1);
 
     // Add this line right after your variables initialization
     noteSpeed = loadNoteSpeed();
@@ -279,7 +428,6 @@
     // Game Functions
     function handleKeyDown(e) {
       const key = e.key.toLowerCase();
-      
       // Prevent default only for game keys to avoid breaking other browser functionality
       if (key === 'escape' || dfjkKeys.includes(key)) {
         e.preventDefault();
@@ -300,7 +448,6 @@
         }
       }
     }
-
 
     function handlePlayButton() {
       if (!gameStarted) {
@@ -324,7 +471,7 @@
         paused = true;
         audio.pause();
         showPauseMenu();
-        
+        dfjkKeys.forEach(key => keyStates[key] = false);
         // Cancel the animation frame when paused
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId);
@@ -341,7 +488,6 @@
         console.error("Error resuming audio:", error);
       });
       hidePauseMenu();
-      
       // Only request a new frame if one isn't already running
       if (!animationFrameId) {
         animationFrameId = requestAnimationFrame(gameLoop);
@@ -353,13 +499,11 @@
         alert('No chart loaded. Please load a chart file.');
         return;
       }
-
       // Reset stats
       score = 0;
       notesHit = 0;
       missedNotes = 0;
       updateStats();
-
       gameStarted = true;
       audio.play().then(() => {
         requestAnimationFrame(gameLoop);
@@ -369,7 +513,6 @@
       });
     }
 
- 
     function resetGame() {
       score = 0;
       notesHit = 0;
@@ -381,7 +524,6 @@
       feedbackTimer = 0;
       paused = false;
       gameStarted = false;
-      
       // Reset key states
       dfjkKeys.forEach(key => keyStates[key] = false);
       
@@ -390,7 +532,6 @@
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
       }
-      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       audio.currentTime = 0;
       audio.pause();
@@ -434,7 +575,7 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawHitZone();
       drawHitEffects();
-
+      
       // Check if song is finished and all notes are processed
       const allNotesProcessed = notes.every(note => note.hit) && 
                               sliders.every(slider => slider.hit);
@@ -478,7 +619,6 @@
 
         if (yEnd > canvas.height || yStart < -40) continue;
         drawSlider(lanesMap[slider.key], yStart, yStart - yEnd, isActive);
-
         if (isActive) {
           slider.active = true;
           score += 10; // Increment score while holding the slider
@@ -529,7 +669,7 @@
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
-      
+
       // Draw hit buttons with key press visualization
       for (let key in lanesMap) {
         const x = lanesMap[key];
@@ -540,7 +680,7 @@
         ctx.roundRect(x - 20, hitZoneY - 20, 40, 40, 10);
         ctx.fill();
         
-        // Button outline
+        // Button outlines
         ctx.strokeStyle = keyStates[key] ? '#0ff' : '#777';
         ctx.lineWidth = keyStates[key] ? 3 : 1;
         ctx.stroke();
@@ -570,7 +710,6 @@
     function updateStats() {
       const totalNotes = notesHit + missedNotes;
       const accuracy = totalNotes > 0 ? ((notesHit / totalNotes) * 100).toFixed(2) : 0;
-
       document.getElementById('score').textContent = score;
       document.getElementById('notesHit').textContent = notesHit;
       document.getElementById('missedNotes').textContent = missedNotes;
@@ -596,11 +735,10 @@
           audio.load();
         });
     }
-    
+
     function createDummyChart() {
       notes = [];
       sliders = [];
-      
       // Create some basic notes
       for (let i = 0; i < 20; i++) {
         const key = dfjkKeys[i % 4];
@@ -610,7 +748,6 @@
           hit: false
         });
       }
-      
       // Add a few sliders
       sliders.push({ startTime: 6, endTime: 7, key: 'd', hit: false });
       sliders.push({ startTime: 8, endTime: 9, key: 'f', hit: false });
@@ -623,7 +760,6 @@
       try {
         notes = [];
         sliders = [];
-
         const lines = data.split('\n');
         for (const line of lines) {
           if (!line || line.trim() === '') continue;
@@ -760,10 +896,6 @@
       const rating = calculateRating(score, maxScore);
       const percentage = (score / maxScore) * 100;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#121212';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       // Draw rating first (make it big and centered)
       ctx.font = 'bold 120px Arial';
       ctx.fillStyle = getRatingColor(rating);
@@ -778,14 +910,14 @@
       ctx.fillStyle = '#fff';
       ctx.fillText('Final Score: ' + score, canvas.width / 2, canvas.height / 2 + 60);
       ctx.fillText(`Accuracy: ${percentage.toFixed(2)}%`, canvas.width / 2, canvas.height / 2 + 90);
-      
+
       // Create try again button with a class for easier removal
       const tryAgainButton = document.createElement('button');
       tryAgainButton.textContent = 'Try Again';
       tryAgainButton.className = 'try-again-button';  // Add class for identification
       tryAgainButton.style.position = 'absolute';
-      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 120}px`;
       tryAgainButton.style.left = `${canvas.offsetLeft + canvas.width / 2}px`;
+      tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 120}px`;
       tryAgainButton.style.transform = 'translateX(-50%)';
       tryAgainButton.style.padding = '12px 30px';
       tryAgainButton.style.fontSize = '18px';
@@ -795,9 +927,8 @@
       tryAgainButton.style.color = '#0ff';
       tryAgainButton.style.cursor = 'pointer';
       tryAgainButton.style.boxShadow = '0 0 10px #0ff';
-
       document.body.appendChild(tryAgainButton);
-      
+
       // Update the click handler to ensure button is removed
       tryAgainButton.addEventListener('click', () => {
         if (tryAgainButton.parentNode) {
@@ -807,7 +938,6 @@
       });
     }
 
-    // Add this new helper function to get rating colors
     function getRatingColor(rating) {
       switch(rating) {
         case 'S+': return '#ffd700'; // Gold
@@ -819,19 +949,6 @@
         default: return '#ffffff';   // White
       }
     }
-    
-    // Add event listener for song end
-    audio.addEventListener('ended', () => {
-      const allNotesProcessed = notes.every(note => note.hit) && 
-                              sliders.every(slider => slider.hit);
-      if (allNotesProcessed) {
-          showGameOverScreen();
-      }
-    });
-
-    // Initialize key states
-    dfjkKeys.forEach(key => keyStates[key] = false);
-    keyStates['escape'] = false;
   </script>
 </body>
 </html>
