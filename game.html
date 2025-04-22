@@ -126,7 +126,20 @@
       text-align: center;
     }
 
-    #noteSpeed {
+    .volume-control {
+      margin: 20px auto;
+      width: 80%;
+      text-align: center;
+    }
+
+    .speed-control label, .volume-control label {
+      display: block;
+      margin-bottom: 10px;
+      color: #0ff;
+      font-size: 16px;
+    }
+
+    #noteSpeed, #musicVolume, #sfxVolume {
       width: 100%;
       height: 6px;
       -webkit-appearance: none;
@@ -139,13 +152,16 @@
       display: block;
     }
 
-    #noteSpeed:hover {
+    #noteSpeed:hover,
+    #musicVolume:hover,
+    #sfxVolume:hover {
       opacity: 1;
     }
 
-    #noteSpeed::-webkit-slider-thumb {
+    #noteSpeed::-webkit-slider-thumb,
+    #musicVolume::-webkit-slider-thumb,
+    #sfxVolume::-webkit-slider-thumb {
       -webkit-appearance: none;
-      appearance: none;
       width: 20px;
       height: 20px;
       background: #0ff;
@@ -155,23 +171,29 @@
       transition: all 0.3s ease;
     }
 
-    #noteSpeed::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      background: #0ff;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 10px #0ff;
-      transition: all 0.3s ease;
-    }
-
-    #noteSpeed::-webkit-slider-thumb:hover {
+    #noteSpeed::-webkit-slider-thumb:hover,
+    #musicVolume::-webkit-slider-thumb:hover,
+    #sfxVolume::-webkit-slider-thumb:hover {
       background: #fff;
       box-shadow: 0 0 15px #0ff;
       transform: scale(1.1);
     }
 
-    #noteSpeed::-moz-range-thumb:hover {
+    #noteSpeed::-moz-range-thumb,
+    #musicVolume::-moz-range-thumb,
+    #sfxVolume::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #0ff;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff;
+      transition: all 0.3s ease;
+    }
+
+    #noteSpeed::-moz-range-thumb:hover,
+    #musicVolume::-moz-range-thumb:hover,
+    #sfxVolume::-moz-range-thumb:hover {
       background: #fff;
       box-shadow: 0 0 15px #0ff;
       transform: scale(1.1);
@@ -309,8 +331,16 @@
   <div id="pauseMenu">
     <h2>Pause Menu</h2>
     <div class="speed-control">
-      <label for="noteSpeed">Note Speed: <span id="speedValue">5</span></label>
-      <input type="range" id="noteSpeed" value="5" min="1" max="10" step="0.1" />
+      <label for="noteSpeed">Note Speed: <span id="speedValue">2.0</span></label>
+      <input type="range" id="noteSpeed" min="1" max="10" step="0.1" value="5">
+    </div>
+    <div class="volume-control">
+      <label for="musicVolume">Music Volume: <span id="musicValue"></span></label>
+      <input type="range" id="musicVolume" min="0" max="100" value="100">
+    </div>
+    <div class="volume-control">
+      <label for="sfxVolume">SFX Volume: <span id="sfxValue"></span></label>
+      <input type="range" id="sfxVolume" min="0" max="100" value="100">
     </div>
     <button id="resumeButton">Resume</button>
   </div>
@@ -324,6 +354,22 @@
   <canvas id="gameCanvas" width="400" height="600"></canvas>
 
   <script>
+    // Add this at the beginning of your script section
+    function loadKeyBinds() {
+      const saved = localStorage.getItem('keyBinds');
+      return saved ? JSON.parse(saved) : { 1: 'd', 2: 'f', 3: 'j', 4: 'k' };
+    }
+
+    // Replace the existing dfjkKeys array with this
+    const keyBinds = loadKeyBinds();
+    const dfjkKeys = Object.values(keyBinds);
+
+    // Update your lanesMap object
+    const lanesMap = {};
+    Object.entries(keyBinds).forEach(([lane, key]) => {
+      lanesMap[key] = 50 + (lane - 1) * 100;
+    });
+
     // DOM Elements
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -343,13 +389,7 @@
     };
     const hitZoneY = 500;
     let noteSpeed = 2;
-    const dfjkKeys = ['d', 'f', 'j', 'k'];
-    const lanesMap = { 'd': 50, 'f': 150, 'j': 250, 'k': 350 };
-    
-    // Key states to prevent key repeat issues
     const keyStates = {};
-    
-    // Animation frame ID for proper animation controls
     let animationFrameId = null;
     let notes = [];
     let sliders = [];
@@ -364,7 +404,6 @@
     let feedback = "";
     let feedbackTimer = 0;
 
-    // Add this after your existing game variables
     function hideMainMenu() {
       const menu = document.getElementById('menu');
       menu.classList.add('hidden');
@@ -375,7 +414,6 @@
       menu.classList.remove('hidden');
     }
 
-    // Add these functions after your existing variables
     function saveNoteSpeeds(speed) {
       document.cookie = `noteSpeed=${speed};max-age=31536000;path=/`; // Saves for 1 year
     }
@@ -391,7 +429,6 @@
       return 2; // Default value if no cookie found
     }
 
-    // Replace the existing noteSpeedInput event listener
     noteSpeedInput.addEventListener('input', (e) => {
       const newSpeed = parseFloat(e.target.value);
       document.getElementById('speedValue').textContent = newSpeed.toFixed(1);
@@ -399,55 +436,29 @@
       saveNoteSpeeds(newSpeed);
     });
 
-    // Add this line after loading the note speed
     document.getElementById('speedValue').textContent = noteSpeed.toFixed(1);
-
-    // Add this line right after your variables initialization
     noteSpeed = loadNoteSpeed();
-    noteSpeedInput.value = noteSpeed; // Update input to match loaded value
+    noteSpeedInput.value = noteSpeed;
 
-    // Event Listeners - Fix the keydown handler
-    document.removeEventListener('keydown', handleKeyDown); // Remove any existing listeners
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // Add keyup listener to track released keys
+    document.addEventListener('keydown', function(e) {
+      const key = e.key.toLowerCase();
+      if (dfjkKeys.includes(key)) {
+        if (!keyStates[key]) {
+          keyStates[key] = true;
+          checkNoteHit(key);
+        }
+      } else if (key === 'escape') {
+        togglePause();
+      }
+    });
+
     document.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
       keyStates[key] = false;
     });
-    
-    // Remove the duplicate keydown listener and replace with a better debug logger
-    document.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
-      console.log(`Key pressed: ${key}, Game Started: ${gameStarted}, Paused: ${paused}, KeyState: ${keyStates[key]}`);
-    }, { once: false });
-    
+
     playButton.addEventListener('click', handlePlayButton);
     resumeButton.addEventListener('click', resumeGame);
-
-    // Game Functions
-    function handleKeyDown(e) {
-      const key = e.key.toLowerCase();
-      // Prevent default only for game keys to avoid breaking other browser functionality
-      if (key === 'escape' || dfjkKeys.includes(key)) {
-        e.preventDefault();
-      }
-      
-      // If key is already pressed down, ignore (prevents key repeat)
-      if (keyStates[key]) return;
-      keyStates[key] = true;
-      
-      if (key === 'escape') {
-        togglePause();
-      } else if (dfjkKeys.includes(key)) {
-        if (paused) {
-          resumeGame();
-        } else if (gameStarted) {
-          checkHit(key);
-          checkSliderHit(key);
-        }
-      }
-    }
 
     function handlePlayButton() {
       if (!gameStarted) {
@@ -472,7 +483,6 @@
         audio.pause();
         showPauseMenu();
         dfjkKeys.forEach(key => keyStates[key] = false);
-        // Cancel the animation frame when paused
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId);
           animationFrameId = null;
@@ -488,7 +498,6 @@
         console.error("Error resuming audio:", error);
       });
       hidePauseMenu();
-      // Only request a new frame if one isn't already running
       if (!animationFrameId) {
         animationFrameId = requestAnimationFrame(gameLoop);
       }
@@ -499,7 +508,6 @@
         alert('No chart loaded. Please load a chart file.');
         return;
       }
-      // Reset stats
       score = 0;
       notesHit = 0;
       missedNotes = 0;
@@ -524,10 +532,8 @@
       feedbackTimer = 0;
       paused = false;
       gameStarted = false;
-      // Reset key states
       dfjkKeys.forEach(key => keyStates[key] = false);
       
-      // Cancel any existing animation
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
@@ -538,19 +544,15 @@
       showMainMenu();
     }
 
-    // Update the drawSlider function to include a larger start zone and better feedback
     function drawSlider(x, y, length, isActive) {
-      // Change color if the slider is active
       ctx.strokeStyle = isActive ? '#ff0' : '#0ff';
       ctx.lineWidth = isActive ? 6 : 4;
 
-      // Draw the slider line
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x, y - length);
       ctx.stroke();
 
-      // Add glowing effect for active sliders
       if (isActive) {
         ctx.shadowColor = '#ff0';
         ctx.shadowBlur = 20;
@@ -558,10 +560,9 @@
         ctx.shadowBlur = 0;
       }
 
-      // Draw slider ends for better visibility
       ctx.fillStyle = isActive ? '#ff0' : '#0ff';
       ctx.beginPath();
-      ctx.arc(x, y, 12, 0, Math.PI * 2); // Larger start zone
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.beginPath();
@@ -569,22 +570,19 @@
       ctx.fill();
     }
 
-    // Update the gameLoop function to check for game over condition
     function gameLoop() {
       const now = audio.currentTime;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawHitZone();
       drawHitEffects();
       
-      // Check if song is finished and all notes are processed
       const allNotesProcessed = notes.every(note => note.hit) && 
                               sliders.every(slider => slider.hit);
       if (audio.ended && allNotesProcessed) {
           showGameOverScreen();
-          return; // Stop the game loop
+          return;
       }
 
-      // Draw notes
       for (let note of notes) {
         if (note.hit) continue;
         const timeToNote = note.time - now;
@@ -601,7 +599,6 @@
         drawNote(lanesMap[note.key], y);
       }
 
-      // Draw sliders
       for (let slider of sliders) {
         const timeToStart = slider.startTime - now;
         const timeToEnd = slider.endTime - now;
@@ -621,12 +618,11 @@
         drawSlider(lanesMap[slider.key], yStart, yStart - yEnd, isActive);
         if (isActive) {
           slider.active = true;
-          score += 10; // Increment score while holding the slider
+          score += 10;
           updateStats();
         }
       }
 
-      // Display feedback
       if (feedbackTimer > 0) {
         ctx.font = "30px Arial";
         ctx.fillStyle = "#fff";
@@ -644,14 +640,12 @@
       ctx.roundRect(x - 20, y - 20, 40, 40, 10);
       ctx.fill();
       
-      // Add outline for better visibility
       ctx.strokeStyle = '#008888';
       ctx.lineWidth = 2;
       ctx.stroke();
     }
 
     function drawHitZone() {
-      // Draw hit line
       ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -659,7 +653,6 @@
       ctx.lineTo(canvas.width, hitZoneY);
       ctx.stroke();
       
-      // Draw lane separators
       ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
       ctx.lineWidth = 1;
       for (let i = 1; i < dfjkKeys.length; i++) {
@@ -670,22 +663,18 @@
         ctx.stroke();
       }
 
-      // Draw hit buttons with key press visualization
       for (let key in lanesMap) {
         const x = lanesMap[key];
         
-        // Button background
         ctx.fillStyle = keyStates[key] ? '#00aaaa' : '#555';
         ctx.beginPath();
         ctx.roundRect(x - 20, hitZoneY - 20, 40, 40, 10);
         ctx.fill();
         
-        // Button outlines
         ctx.strokeStyle = keyStates[key] ? '#0ff' : '#777';
         ctx.lineWidth = keyStates[key] ? 3 : 1;
         ctx.stroke();
         
-        // Button label
         ctx.font = '20px Arial';
         ctx.fillStyle = keyStates[key] ? '#fff' : '#888';
         ctx.textAlign = 'center';
@@ -716,7 +705,6 @@
       document.getElementById('accuracy').textContent = `${accuracy}%`;
     }
 
-    // Utility Functions
     function loadChart(chartFile) {
       fetch(chartFile)
         .then(response => response.text())
@@ -729,7 +717,6 @@
           console.error("Error loading chart:", error);
           alert('Failed to load chart. Please check the file.');
           
-          // Create some default notes for testing if chart fails to load
           createDummyChart();
           audio.src = songSelector.value;
           audio.load();
@@ -739,7 +726,6 @@
     function createDummyChart() {
       notes = [];
       sliders = [];
-      // Create some basic notes
       for (let i = 0; i < 20; i++) {
         const key = dfjkKeys[i % 4];
         notes.push({
@@ -748,14 +734,12 @@
           hit: false
         });
       }
-      // Add a few sliders
       sliders.push({ startTime: 6, endTime: 7, key: 'd', hit: false });
       sliders.push({ startTime: 8, endTime: 9, key: 'f', hit: false });
       sliders.push({ startTime: 10, endTime: 11, key: 'j', hit: false });
       sliders.push({ startTime: 12, endTime: 13, key: 'k', hit: false });
     }
 
-    // Update the slider object structure to include an "active" property
     function parseChart(data) {
       try {
         notes = [];
@@ -764,7 +748,6 @@
         for (const line of lines) {
           if (!line || line.trim() === '') continue;
 
-          // Parse notes
           const noteMatch = line.match(/Time: ([\d.]+), Note: (\w+)/);
           if (noteMatch && lanesMap[noteMatch[2]]) {
             notes.push({
@@ -775,7 +758,6 @@
             continue;
           }
 
-          // Parse sliders
           const sliderMatch = line.match(
             /Slider: StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/
           );
@@ -785,7 +767,7 @@
               endTime: parseFloat(sliderMatch[2]),
               key: sliderMatch[3],
               hit: false,
-              active: false, // New property to track if the slider is being used
+              active: false,
             });
           }
         }
@@ -809,41 +791,38 @@
       return "D";
     }
 
-    // Update the checkHit function to provide feedback
-    function checkHit(key) {
+    function checkNoteHit(key) {
       const now = audio.currentTime;
       for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
         if (!note.hit && note.key === key) {
           const timeDifference = Math.abs(note.time - now);
 
-          // Determine feedback based on timing
           if (timeDifference < 0.1) {
             feedback = "Perfect!";
-            score += 300; // Perfect score
+            score += 300;
           } else if (timeDifference < 0.2) {
             feedback = "Good!";
-            score += 200; // Good score
+            score += 200;
           } else if (timeDifference < 0.3) {
             feedback = "Bad!";
-            score += 100; // Bad score
+            score += 100;
           } else {
-            continue; // Too far away, skip
+            continue;
           }
 
           note.hit = true;
           notesHit++;
-          feedbackTimer = 30; // Display feedback for 30 frames
+          feedbackTimer = 30;
           hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
           updateStats();
           return;
         }
       }
 
-      // If no note was hit, count it as a miss
       feedback = "Miss!";
       missedNotes++;
-      feedbackTimer = 30; // Display feedback for 30 frames
+      feedbackTimer = 30;
       updateStats();
     }
 
@@ -857,7 +836,7 @@
           now >= slider.startTime &&
           now <= slider.endTime
         ) {
-          slider.active = true; // Mark slider as active
+          slider.active = true;
           return true;
         }
       }
@@ -872,21 +851,17 @@
       pauseMenu.style.display = 'none';
     }
 
-    // Update the showGameOverScreen function
     function showGameOverScreen() {
-      // Remove any existing try again button first
       const existingButton = document.querySelector('.try-again-button');
       if (existingButton) {
         document.body.removeChild(existingButton);
       }
 
-      // Cancel any existing animation frame
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
       }
 
-      // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#121212';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -896,7 +871,6 @@
       const rating = calculateRating(score, maxScore);
       const percentage = (score / maxScore) * 100;
 
-      // Draw rating first (make it big and centered)
       ctx.font = 'bold 120px Arial';
       ctx.fillStyle = getRatingColor(rating);
       ctx.textAlign = 'center';
@@ -905,16 +879,14 @@
       ctx.fillText(rating, canvas.width / 2, canvas.height / 2 - 20);
       ctx.shadowBlur = 0;
 
-      // Draw other stats
       ctx.font = '24px Arial';
       ctx.fillStyle = '#fff';
       ctx.fillText('Final Score: ' + score, canvas.width / 2, canvas.height / 2 + 60);
       ctx.fillText(`Accuracy: ${percentage.toFixed(2)}%`, canvas.width / 2, canvas.height / 2 + 90);
 
-      // Create try again button with a class for easier removal
       const tryAgainButton = document.createElement('button');
       tryAgainButton.textContent = 'Try Again';
-      tryAgainButton.className = 'try-again-button';  // Add class for identification
+      tryAgainButton.className = 'try-again-button';
       tryAgainButton.style.position = 'absolute';
       tryAgainButton.style.left = `${canvas.offsetLeft + canvas.width / 2}px`;
       tryAgainButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 120}px`;
@@ -929,7 +901,6 @@
       tryAgainButton.style.boxShadow = '0 0 10px #0ff';
       document.body.appendChild(tryAgainButton);
 
-      // Update the click handler to ensure button is removed
       tryAgainButton.addEventListener('click', () => {
         if (tryAgainButton.parentNode) {
           tryAgainButton.parentNode.removeChild(tryAgainButton);
@@ -940,13 +911,13 @@
 
     function getRatingColor(rating) {
       switch(rating) {
-        case 'S+': return '#ffd700'; // Gold
-        case 'S': return '#00ffff';  // Cyan
-        case 'A': return '#00ff00';  // Green
-        case 'B': return '#4169e1';  // Royal Blue
-        case 'C': return '#ff8c00';  // Dark Orange
-        case 'D': return '#ff0000';  // Red
-        default: return '#ffffff';   // White
+        case 'S+': return '#ffd700';
+        case 'S': return '#00ffff';
+        case 'A': return '#00ff00';
+        case 'B': return '#4169e1';
+        case 'C': return '#ff8c00';
+        case 'D': return '#ff0000';
+        default: return '#ffffff';
       }
     }
   </script>

@@ -443,32 +443,65 @@
         <div style="margin-bottom: 15px;">
           <label style="display: block; color: #0ff; margin-bottom: 5px;">Key Bindings</label>
           <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
-              <div style="font-size: 1.2rem; color: #0ff;">D</div>
+            <div class="key-bind" data-lane="1" style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px; cursor: pointer;">
+              <div class="key-value" style="font-size: 1.2rem; color: #0ff;">D</div>
               <div style="font-size: 0.8rem; color: #888;">Lane 1</div>
             </div>
-            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
-              <div style="font-size: 1.2rem; color: #0ff;">F</div>
+            <div class="key-bind" data-lane="2" style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px; cursor: pointer;">
+              <div class="key-value" style="font-size: 1.2rem; color: #0ff;">F</div>
               <div style="font-size: 0.8rem; color: #888;">Lane 2</div>
             </div>
-            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
-              <div style="font-size: 1.2rem; color: #0ff;">J</div>
+            <div class="key-bind" data-lane="3" style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px; cursor: pointer;">
+              <div class="key-value" style="font-size: 1.2rem; color: #0ff;">J</div>
               <div style="font-size: 0.8rem; color: #888;">Lane 3</div>
             </div>
-            <div style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px;">
-              <div style="font-size: 1.2rem; color: #0ff;">K</div>
+            <div class="key-bind" data-lane="4" style="flex: 1; text-align: center; padding: 10px; background: #111; border-radius: 5px; cursor: pointer;">
+              <div class="key-value" style="font-size: 1.2rem; color: #0ff;">K</div>
               <div style="font-size: 0.8rem; color: #888;">Lane 4</div>
             </div>
           </div>
         </div>
       </div>
-      <button class="button">Save Changes</button>
     </div>
   </div>
   
   <div class="version">v1.0.0</div>
 
   <script>
+    // Initialize variables for volume and note speed
+    let noteSpeed = localStorage.getItem('noteSpeed') || 2;
+    let musicVolume = localStorage.getItem('musicVolume') || 90;
+    let sfxVolume = localStorage.getItem('sfxVolume') || 80;
+
+    // Get the input elements
+    const noteSpeedInput = document.querySelector('input[min="1"][max="5"]');
+    const sfxVolumeInput = document.querySelector('input[value="80"]');
+    const musicVolumeInput = document.querySelector('input[value="90"]');
+
+    // Set initial values
+    noteSpeedInput.value = noteSpeed;
+    sfxVolumeInput.value = sfxVolume;
+    musicVolumeInput.value = musicVolume;
+
+    // Add event listeners for real-time updates
+    noteSpeedInput.addEventListener('input', (e) => {
+        const newSpeed = parseFloat(e.target.value);
+        localStorage.setItem('noteSpeed', newSpeed);
+        noteSpeed = newSpeed;
+    });
+
+    sfxVolumeInput.addEventListener('input', (e) => {
+        const newVolume = parseInt(e.target.value);
+        localStorage.setItem('sfxVolume', newVolume);
+        sfxVolume = newVolume;
+    });
+
+    musicVolumeInput.addEventListener('input', (e) => {
+        const newVolume = parseInt(e.target.value);
+        localStorage.setItem('musicVolume', newVolume);
+        musicVolume = newVolume;
+    });
+
     // Show loading progress
     window.onload = function() {
       const progress = document.getElementById('loading-progress');
@@ -519,12 +552,37 @@
     });
     
     // Any key to start functionality
-    document.addEventListener('keydown', function() {
-      // Could trigger start animation or redirect
-      document.querySelector('.footer').textContent = 'Loading game...';
-      setTimeout(() => {
-        window.location.href = 'game.html'; // Auto-redirect after key press
-      }, 1000);
+    document.addEventListener('keydown', function(e) {
+      // If we're setting a key binding, handle that instead of redirecting
+      if (isSettingKey && activeKeyBind) {
+        e.preventDefault();
+        e.stopPropagation(); // Stop event from bubbling up
+        
+        const lane = activeKeyBind.dataset.lane;
+        const newKey = e.key.toLowerCase();
+        
+        // Update the key binding
+        currentKeyBinds[lane] = newKey;
+        saveKeyBinds(currentKeyBinds);
+        
+        // Reset the active element
+        activeKeyBind.style.background = '#111';
+        activeKeyBind.querySelector('.key-value').style.color = '#0ff';
+        isSettingKey = false;
+        activeKeyBind = null;
+        
+        // Update all key displays
+        updateKeyBindDisplay();
+        return; // Exit early to prevent redirect
+      }
+      
+      // Only redirect if we're not in the options modal
+      if (!document.getElementById('options-modal').style.display === 'flex') {
+        document.querySelector('.footer').textContent = 'Loading game...';
+        setTimeout(() => {
+          window.location.href = 'game.html';
+        }, 1000);
+      }
     });
     
     // Song item click event
@@ -536,6 +594,67 @@
         window.location.href = 'game.html'; // Redirect to game with selected song
       });
     });
+
+    // Key binding functionality
+    function saveKeyBinds(binds) {
+      localStorage.setItem('keyBinds', JSON.stringify(binds));
+    }
+
+    function loadKeyBinds() {
+      const saved = localStorage.getItem('keyBinds');
+      return saved ? JSON.parse(saved) : { 1: 'd', 2: 'f', 3: 'j', 4: 'k' };
+    }
+
+    // Initialize key bindings
+    let currentKeyBinds = loadKeyBinds();
+    let isSettingKey = false;
+    let activeKeyBind = null;
+
+    // Update the displayed key bindings
+    function updateKeyBindDisplay() {
+      document.querySelectorAll('.key-bind').forEach(bind => {
+        const lane = bind.dataset.lane;
+        bind.querySelector('.key-value').textContent = currentKeyBinds[lane].toUpperCase();
+      });
+    }
+
+    // Add click handlers for key binding elements
+    document.querySelectorAll('.key-bind').forEach(bind => {
+      bind.addEventListener('click', function() {
+        if (isSettingKey) return;
+        
+        isSettingKey = true;
+        activeKeyBind = this;
+        this.style.background = '#0ff';
+        this.querySelector('.key-value').textContent = 'Press Key...';
+        this.querySelector('.key-value').style.color = '#000';
+      });
+    });
+
+    // Listen for key press when setting new bind
+    document.addEventListener('keydown', function(e) {
+      if (!isSettingKey || !activeKeyBind) return;
+      
+      e.preventDefault();
+      const lane = activeKeyBind.dataset.lane;
+      const newKey = e.key.toLowerCase();
+      
+      // Update the key binding
+      currentKeyBinds[lane] = newKey;
+      saveKeyBinds(currentKeyBinds);
+      
+      // Reset the active element
+      activeKeyBind.style.background = '#111';
+      activeKeyBind.querySelector('.key-value').style.color = '#0ff';
+      isSettingKey = false;
+      activeKeyBind = null;
+      
+      // Update all key displays
+      updateKeyBindDisplay();
+    });
+
+    // Initial display update
+    updateKeyBindDisplay();
   </script>
 </body>
 </html>
