@@ -321,12 +321,13 @@
     <h1>Simple Rhythm Game</h1>
     <select id="songSelector">
       <option value="" disabled selected>Select a Song ▾</option>
-      <option value="song.mp3">Neon Dreams</option>
-      <option value="song2.mp3">All My Stars</option>
-      <option value="song3.mp3">Digital Sunset</option>
-      <option value="song4.mp3">Cyber Rush</option>
-      <option value="song5.mp3">Night Drive</option>
-      <option value="song6.mp3">Never</option>
+      <option value="/songs/song.mp3">Neon Dreams</option>
+      <option value="/songs/song2.mp3">All My Stars</option>
+      <option value="/songs/song3.mp3">Digital Sunset</option>
+      <option value="/songs/song4.mp3">Cyber Rush</option>
+      <option value="/songs/song5.mp3">Night Drive</option>
+      <option value="/songs/song6.mp3">Never</option>
+      <option value="/songs/battleundersky.mp3">Battle Under A Broken Sky</option>
     </select>
     <button id="playButton">Play</button>
   </div>
@@ -384,11 +385,13 @@
 
     // Game Variables
     const songCharts = {
-      "song.mp3": "./charts/song1.txt",
-      "song2.mp3": "./charts/song2.txt",
-      "song3.mp3": "./charts/song3.txt",
-      "song4.mp3": "./charts/song4.txt",
-      "song6.mp3": "./charts/song6.txt",
+      "/songs/song.mp3": "./charts/song1.txt",
+      "/songs/song2.mp3": "./charts/song2.txt",
+      "/songs/song3.mp3": "./charts/song3.txt",
+      "/songs/song4.mp3": "./charts/song4.txt",
+      "/songs/song5.mp3": "./charts/song5/txt",
+      "/songs/song6.mp3": "./charts/song6.txt",
+      "/songs/battleundersky.mp3": "./charts/battleunderksy.txt"
     };
     const hitZoneY = 500;
     let noteSpeed = 2;
