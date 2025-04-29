@@ -1,0 +1,588 @@
+Time: 8.91, Note: j
+Time: 9.06, Note: d
+Time: 9.12, Note: f
+Time: 9.46, Note: k
+Time: 9.62, Note: f
+Time: 9.88, Note: j
+Time: 10.10, Note: d
+Time: 10.40, Note: k
+Time: 10.58, Note: f
+Time: 10.86, Note: j
+Time: 11.05, Note: d
+Time: 11.32, Note: k
+Time: 11.48, Note: f
+Time: 11.77, Note: j
+Time: 11.98, Note: d
+Time: 12.26, Note: k
+Time: 12.48, Note: f
+Time: 12.70, Note: j
+Time: 12.92, Note: d
+Time: 13.16, Note: k
+Time: 13.28, Note: f
+Time: 13.62, Note: j
+Time: 13.93, Note: d
+Time: 13.95, Note: k
+Time: 14.29, Note: f
+Time: 14.46, Note: j
+Time: 14.67, Note: d
+Time: 14.91, Note: k
+Time: 15.29, Note: f
+Time: 15.33, Note: j
+Time: 15.81, Note: d
+Time: 15.86, Note: k
+Time: 16.23, Note: f
+Time: 16.25, Note: j
+Time: 16.67, Note: d
+Time: 16.68, Note: k
+Time: 17.13, Note: d
+Time: 17.15, Note: k
+Time: 17.35, Note: k
+Time: 17.36, Note: d
+Time: 17.57, Note: j
+Time: 17.84, Note: f
+Time: 17.96, Note: k
+Time: 18.20, Note: d
+Time: 18.25, Note: j
+Time: 18.42, Note: f
+Time: 18.58, Note: k
+Time: 18.70, Note: d
+Time: 18.88, Note: j
+Time: 19.03, Note: f
+Time: 19.15, Note: k
+Time: 19.31, Note: d
+Time: 19.39, Note: j
+Time: 19.59, Note: f
+Time: 19.76, Note: k
+Time: 19.94, Note: d
+Time: 20.02, Note: j
+Time: 20.22, Note: f
+Time: 20.42, Note: j
+Time: 20.69, Note: d
+Time: 21.03, Note: k
+Time: 21.39, Note: j
+Time: 21.79, Note: f
+Time: 21.98, Note: k
+Time: 22.05, Note: d
+Time: 22.26, Note: j
+Time: 22.62, Note: f
+Time: 22.77, Note: k
+Time: 22.89, Note: d
+Time: 23.01, Note: j
+Time: 23.19, Note: f
+Time: 23.55, Note: k
+Time: 23.65, Note: d
+Time: 23.80, Note: j
+Time: 23.92, Note: f
+Time: 25.53, Note: j
+Time: 25.68, Note: d
+Time: 25.88, Note: k
+Time: 25.98, Note: f
+Time: 26.38, Note: j
+Time: 26.50, Note: f
+Time: 26.63, Note: k
+Time: 26.77, Note: d
+Time: 26.86, Note: j
+Time: 27.29, Note: f
+Time: 27.39, Note: k
+Time: 27.56, Note: d
+Time: 27.60, Note: j
+Time: 28.20, Note: d
+Time: 28.22, Note: k
+Time: 28.67, Note: f
+Time: 28.72, Note: j
+Time: 29.10, Note: d
+Time: 29.34, Note: k
+Time: 29.52, Note: f
+Time: 29.77, Note: j
+Time: 30.16, Note: d
+Time: 30.22, Note: k
+Slider: StartTime: 30.40, EndTime: 30.71, Key: j
+Slider: StartTime: 30.39, EndTime: 31.08, Key: f
+Slider: StartTime: 30.88, EndTime: 31.32, Key: k
+Slider: StartTime: 31.09, EndTime: 31.75, Key: d
+Slider: StartTime: 31.35, EndTime: 31.83, Key: j
+Slider: StartTime: 31.59, EndTime: 32.04, Key: f
+Slider: StartTime: 31.81, EndTime: 32.26, Key: k
+Slider: StartTime: 32.02, EndTime: 32.57, Key: d
+Slider: StartTime: 32.28, EndTime: 32.76, Key: j
+Slider: StartTime: 32.51, EndTime: 33.02, Key: f
+Slider: StartTime: 32.73, EndTime: 33.18, Key: k
+Slider: StartTime: 32.98, EndTime: 33.51, Key: d
+Slider: StartTime: 33.19, EndTime: 33.68, Key: j
+Slider: StartTime: 33.45, EndTime: 33.97, Key: f
+Slider: StartTime: 33.66, EndTime: 34.13, Key: k
+Slider: StartTime: 33.90, EndTime: 34.33, Key: d
+Slider: StartTime: 34.09, EndTime: 34.54, Key: j
+Slider: StartTime: 34.27, EndTime: 34.79, Key: f
+Time: 35.76, Note: d
+Time: 35.85, Note: f
+Time: 36.16, Note: d
+Time: 36.36, Note: f
+Time: 36.71, Note: d
+Time: 36.88, Note: f
+Time: 37.11, Note: d
+Time: 37.40, Note: j
+Time: 37.64, Note: k
+Time: 37.88, Note: j
+Time: 38.12, Note: k
+Time: 38.32, Note: j
+Time: 38.55, Note: k
+Time: 38.81, Note: j
+Time: 39.03, Note: k
+Slider: StartTime: 39.02, EndTime: 39.34, Key: j
+Slider: StartTime: 39.27, EndTime: 39.59, Key: k
+Slider: StartTime: 39.46, EndTime: 39.83, Key: f
+Slider: StartTime: 39.66, EndTime: 40.06, Key: j
+Slider: StartTime: 39.87, EndTime: 40.42, Key: d
+Slider: StartTime: 40.07, EndTime: 40.54, Key: k
+Slider: StartTime: 40.37, EndTime: 40.73, Key: f
+Slider: StartTime: 40.61, EndTime: 41.19, Key: j
+Slider: StartTime: 41.10, EndTime: 41.75, Key: f
+Slider: StartTime: 41.50, EndTime: 42.35, Key: k
+Slider: StartTime: 41.99, EndTime: 42.58, Key: d
+Slider: StartTime: 42.48, EndTime: 42.89, Key: k
+Slider: StartTime: 42.70, EndTime: 43.53, Key: d
+Slider: StartTime: 43.64, EndTime: 44.08, Key: d
+Slider: StartTime: 43.13, EndTime: 44.19, Key: j
+Slider: StartTime: 44.15, EndTime: 44.74, Key: f
+Slider: StartTime: 44.87, EndTime: 45.19, Key: f
+Time: 45.44, Note: k
+Time: 45.52, Note: f
+Time: 45.72, Note: k
+Time: 45.83, Note: f
+Time: 46.34, Note: j
+Slider: StartTime: 46.35, EndTime: 46.66, Key: d
+Time: 46.89, Note: k
+Time: 47.44, Note: k
+Time: 47.72, Note: f
+Time: 48.02, Note: j
+Time: 48.15, Note: d
+Slider: StartTime: 48.42, EndTime: 48.84, Key: f
+Slider: StartTime: 48.44, EndTime: 48.85, Key: k
+Slider: StartTime: 48.81, EndTime: 49.58, Key: d
+Slider: StartTime: 49.32, EndTime: 49.93, Key: j
+Slider: StartTime: 49.83, EndTime: 50.41, Key: f
+Slider: StartTime: 50.06, EndTime: 50.99, Key: k
+Slider: StartTime: 50.51, EndTime: 51.47, Key: f
+Slider: StartTime: 50.99, EndTime: 51.51, Key: j
+Slider: StartTime: 51.44, EndTime: 52.45, Key: d
+Slider: StartTime: 52.06, EndTime: 53.03, Key: k
+Slider: StartTime: 52.53, EndTime: 53.48, Key: f
+Slider: StartTime: 53.01, EndTime: 53.76, Key: j
+Slider: StartTime: 53.52, EndTime: 54.21, Key: d
+Slider: StartTime: 53.73, EndTime: 54.66, Key: k
+Slider: StartTime: 54.19, EndTime: 54.94, Key: f
+Time: 55.36, Note: d
+Slider: StartTime: 54.64, EndTime: 55.42, Key: j
+Time: 56.01, Note: f
+Time: 56.08, Note: k
+Time: 56.45, Note: d
+Time: 56.48, Note: j
+Time: 56.84, Note: f
+Time: 56.90, Note: k
+Time: 57.29, Note: d
+Time: 57.32, Note: j
+Time: 57.60, Note: f
+Time: 57.67, Note: k
+Time: 58.05, Note: d
+Time: 58.06, Note: j
+Time: 58.47, Note: f
+Time: 58.50, Note: k
+Time: 58.94, Note: d
+Time: 58.98, Note: j
+Time: 59.56, Note: k
+Time: 59.72, Note: d
+Time: 59.89, Note: j
+Time: 60.21, Note: f
+Time: 60.54, Note: k
+Time: 60.73, Note: d
+Time: 60.98, Note: j
+Time: 61.26, Note: f
+Slider: StartTime: 61.25, EndTime: 61.63, Key: k
+Time: 61.89, Note: d
+Time: 62.07, Note: j
+Time: 62.33, Note: f
+Time: 62.49, Note: k
+Time: 62.72, Note: d
+Time: 62.89, Note: j
+Time: 63.09, Note: f
+Slider: StartTime: 63.01, EndTime: 63.31, Key: k
+Time: 63.48, Note: d
+Time: 63.70, Note: j
+Time: 63.92, Note: f
+Time: 64.15, Note: k
+Time: 64.38, Note: d
+Time: 64.45, Note: j
+Time: 64.64, Note: f
+Time: 64.86, Note: k
+Time: 65.08, Note: d
+Time: 65.31, Note: j
+Time: 65.57, Note: f
+Time: 65.81, Note: k
+Time: 66.05, Note: d
+Time: 66.19, Note: j
+Time: 66.37, Note: f
+Slider: StartTime: 66.34, EndTime: 66.67, Key: k
+Time: 66.91, Note: f
+Time: 67.16, Note: k
+Slider: StartTime: 67.08, EndTime: 67.39, Key: f
+Time: 67.60, Note: j
+Time: 67.83, Note: f
+Time: 68.05, Note: k
+Time: 68.17, Note: f
+Time: 68.39, Note: j
+Time: 68.53, Note: f
+Slider: StartTime: 68.50, EndTime: 68.80, Key: k
+Time: 68.98, Note: f
+Time: 69.25, Note: j
+Time: 69.47, Note: f
+Time: 69.72, Note: k
+Time: 69.92, Note: f
+Time: 70.03, Note: j
+Time: 70.29, Note: f
+Slider: StartTime: 70.54, EndTime: 70.87, Key: k
+Time: 71.10, Note: f
+Time: 71.29, Note: j
+Time: 71.56, Note: f
+Time: 71.76, Note: k
+Time: 71.90, Note: f
+Time: 72.09, Note: j
+Time: 72.24, Note: f
+Slider: StartTime: 72.18, EndTime: 72.48, Key: k
+Time: 72.65, Note: f
+Time: 72.89, Note: j
+Time: 73.12, Note: f
+Time: 73.40, Note: k
+Time: 73.57, Note: f
+Time: 73.66, Note: j
+Time: 73.93, Note: f
+Time: 74.40, Note: f
+Time: 74.50, Note: k
+Time: 77.08, Note: j
+Time: 77.11, Note: d
+Time: 77.31, Note: f
+Time: 77.43, Note: k
+Time: 77.55, Note: f
+Time: 77.80, Note: j
+Time: 78.02, Note: d
+Time: 78.27, Note: k
+Time: 78.47, Note: f
+Time: 78.71, Note: j
+Time: 78.89, Note: d
+Time: 79.16, Note: k
+Time: 79.34, Note: f
+Time: 79.60, Note: j
+Time: 79.83, Note: d
+Time: 80.08, Note: k
+Time: 80.23, Note: f
+Time: 80.48, Note: j
+Time: 80.73, Note: d
+Time: 80.95, Note: k
+Time: 81.14, Note: f
+Time: 81.37, Note: j
+Slider: StartTime: 81.39, EndTime: 81.73, Key: d
+Time: 81.94, Note: k
+Time: 82.78, Note: j
+Time: 82.89, Note: f
+Time: 83.20, Note: k
+Time: 83.47, Note: k
+Time: 83.81, Note: d
+Time: 83.95, Note: j
+Time: 84.23, Note: j
+Time: 84.47, Note: f
+Time: 84.70, Note: k
+Time: 84.93, Note: d
+Time: 85.14, Note: j
+Time: 85.39, Note: f
+Time: 85.64, Note: k
+Time: 85.86, Note: d
+Time: 86.07, Note: j
+Time: 86.30, Note: f
+Time: 86.58, Note: k
+Time: 86.79, Note: d
+Time: 86.96, Note: j
+Time: 87.39, Note: f
+Time: 87.44, Note: k
+Time: 87.86, Note: j
+Time: 87.93, Note: d
+Time: 88.32, Note: f
+Time: 88.35, Note: k
+Time: 88.76, Note: j
+Time: 88.80, Note: d
+Time: 89.17, Note: f
+Time: 89.25, Note: k
+Time: 89.50, Note: d
+Time: 89.74, Note: j
+Time: 89.96, Note: f
+Time: 90.22, Note: k
+Time: 90.43, Note: d
+Time: 90.63, Note: j
+Time: 90.73, Note: f
+Time: 91.08, Note: f
+Time: 91.13, Note: k
+Time: 91.55, Note: j
+Time: 91.60, Note: d
+Time: 92.01, Note: f
+Time: 92.07, Note: k
+Time: 92.46, Note: j
+Time: 92.53, Note: d
+Time: 92.92, Note: f
+Time: 93.09, Note: k
+Time: 93.22, Note: d
+Time: 93.35, Note: j
+Time: 93.48, Note: f
+Time: 93.68, Note: k
+Time: 93.80, Note: d
+Time: 93.92, Note: j
+Time: 94.05, Note: f
+Time: 94.24, Note: k
+Time: 94.36, Note: d
+Time: 94.49, Note: j
+Time: 94.67, Note: f
+Time: 94.72, Note: j
+Time: 94.97, Note: d
+Time: 95.08, Note: k
+Time: 95.23, Note: f
+Time: 95.58, Note: j
+Time: 95.73, Note: d
+Time: 95.87, Note: k
+Time: 96.05, Note: f
+Time: 96.56, Note: j
+Time: 96.76, Note: d
+Time: 96.89, Note: k
+Time: 97.03, Note: f
+Time: 97.14, Note: j
+Time: 97.33, Note: d
+Time: 97.46, Note: k
+Time: 97.58, Note: f
+Time: 97.72, Note: j
+Time: 97.88, Note: d
+Time: 98.01, Note: k
+Time: 98.14, Note: f
+Time: 98.30, Note: j
+Time: 98.49, Note: d
+Time: 98.61, Note: k
+Time: 98.77, Note: f
+Time: 98.88, Note: j
+Time: 99.26, Note: d
+Time: 99.40, Note: k
+Time: 99.51, Note: f
+Time: 99.65, Note: j
+Time: 99.83, Note: d
+Time: 100.21, Note: j
+Time: 100.40, Note: f
+Time: 100.58, Note: k
+Time: 100.75, Note: d
+Time: 100.84, Note: j
+Time: 101.03, Note: f
+Time: 101.26, Note: k
+Time: 101.40, Note: d
+Time: 101.52, Note: j
+Time: 101.67, Note: f
+Time: 101.85, Note: k
+Time: 101.96, Note: d
+Time: 102.13, Note: j
+Time: 102.25, Note: f
+Time: 102.41, Note: k
+Time: 102.64, Note: d
+Time: 102.98, Note: j
+Time: 103.16, Note: f
+Time: 103.29, Note: k
+Time: 103.56, Note: f
+Time: 104.00, Note: j
+Time: 104.47, Note: d
+Time: 106.04, Note: k
+Time: 106.06, Note: d
+Time: 106.37, Note: f
+Time: 106.38, Note: j
+Time: 106.83, Note: d
+Time: 106.87, Note: k
+Time: 107.22, Note: f
+Time: 107.27, Note: k
+Time: 107.47, Note: f
+Time: 107.55, Note: k
+Time: 107.92, Note: j
+Time: 107.93, Note: d
+Time: 108.37, Note: d
+Time: 108.40, Note: k
+Time: 108.77, Note: j
+Time: 108.83, Note: d
+Time: 109.50, Note: j
+Time: 109.51, Note: d
+Time: 109.97, Note: f
+Time: 110.00, Note: k
+Time: 110.45, Note: f
+Time: 110.46, Note: j
+Time: 110.84, Note: d
+Time: 110.87, Note: k
+Time: 111.12, Note: f
+Time: 111.15, Note: j
+Time: 111.57, Note: d
+Time: 111.59, Note: k
+Time: 111.92, Note: f
+Time: 111.94, Note: j
+Time: 112.40, Note: d
+Time: 112.44, Note: k
+Time: 113.10, Note: f
+Time: 113.14, Note: j
+Time: 113.58, Note: f
+Time: 113.63, Note: k
+Time: 114.03, Note: d
+Time: 114.09, Note: j
+Time: 114.53, Note: d
+Time: 114.54, Note: j
+Time: 114.81, Note: f
+Time: 114.84, Note: k
+Time: 115.23, Note: f
+Time: 115.24, Note: j
+Time: 115.66, Note: d
+Time: 115.69, Note: k
+Time: 116.12, Note: j
+Time: 116.13, Note: f
+Time: 116.82, Note: d
+Time: 116.82, Note: k
+Time: 117.23, Note: f
+Time: 117.26, Note: j
+Time: 117.73, Note: d
+Time: 117.76, Note: k
+Time: 118.17, Note: f
+Time: 118.18, Note: j
+Time: 118.47, Note: d
+Time: 118.50, Note: k
+Time: 118.94, Note: f
+Time: 118.95, Note: j
+Time: 119.39, Note: d
+Time: 119.41, Note: k
+Time: 119.83, Note: f
+Time: 119.83, Note: j
+Time: 120.79, Note: d
+Time: 120.91, Note: k
+Time: 121.16, Note: f
+Time: 121.50, Note: f
+Time: 121.51, Note: j
+Time: 121.90, Note: d
+Time: 121.94, Note: k
+Time: 122.15, Note: j
+Time: 122.17, Note: f
+Time: 122.57, Note: d
+Time: 122.59, Note: k
+Time: 123.07, Note: j
+Time: 123.09, Note: d
+Time: 123.45, Note: f
+Time: 123.49, Note: k
+Time: 124.19, Note: d
+Time: 124.22, Note: j
+Time: 124.65, Note: f
+Time: 124.72, Note: k
+Time: 125.12, Note: d
+Time: 125.16, Note: j
+Time: 125.60, Note: f
+Time: 125.61, Note: k
+Time: 125.86, Note: j
+Time: 125.88, Note: d
+Time: 126.28, Note: f
+Time: 126.31, Note: k
+Time: 126.71, Note: j
+Time: 126.72, Note: d
+Time: 127.16, Note: f
+Time: 127.19, Note: k
+Time: 127.83, Note: j
+Time: 127.86, Note: d
+Time: 128.29, Note: f
+Time: 128.32, Note: k
+Time: 128.80, Note: j
+Time: 128.84, Note: d
+Time: 129.30, Note: f
+Time: 129.33, Note: k
+Time: 129.64, Note: j
+Time: 129.68, Note: d
+Time: 130.05, Note: f
+Time: 130.07, Note: k
+Time: 130.45, Note: j
+Time: 130.49, Note: d
+Time: 130.87, Note: f
+Time: 130.92, Note: k
+Time: 131.61, Note: j
+Time: 131.65, Note: d
+Time: 132.04, Note: f
+Time: 132.09, Note: k
+Time: 132.55, Note: j
+Time: 132.58, Note: d
+Time: 132.95, Note: f
+Time: 132.97, Note: k
+Time: 133.24, Note: d
+Time: 133.26, Note: j
+Time: 133.63, Note: d
+Time: 133.65, Note: k
+Time: 134.04, Note: f
+Time: 134.06, Note: j
+Time: 134.56, Note: d
+Time: 134.57, Note: k
+Time: 134.91, Note: f
+Time: 134.92, Note: j
+Time: 135.48, Note: d
+Time: 135.62, Note: k
+Time: 135.75, Note: f
+Time: 135.90, Note: j
+Time: 136.07, Note: d
+Slider: StartTime: 136.06, EndTime: 136.43, Key: k
+Time: 136.64, Note: f
+Time: 136.89, Note: j
+Time: 137.05, Note: d
+Time: 137.34, Note: k
+Time: 137.51, Note: f
+Time: 137.70, Note: j
+Time: 137.93, Note: d
+Time: 138.19, Note: k
+Time: 138.36, Note: f
+Time: 138.58, Note: j
+Time: 138.91, Note: d
+Time: 139.30, Note: k
+Time: 139.50, Note: f
+Time: 139.69, Note: j
+Time: 139.97, Note: d
+Time: 140.15, Note: k
+Time: 140.31, Note: f
+Time: 140.52, Note: j
+Time: 140.74, Note: d
+Time: 141.09, Note: k
+Time: 141.41, Note: f
+Time: 141.68, Note: j
+Time: 141.93, Note: d
+Time: 142.19, Note: k
+Time: 142.47, Note: f
+Time: 142.75, Note: j
+Time: 143.01, Note: d
+Time: 143.25, Note: k
+Time: 143.48, Note: f
+Time: 143.68, Note: j
+Time: 143.84, Note: d
+Time: 144.02, Note: k
+Time: 144.24, Note: f
+Time: 144.43, Note: j
+Time: 144.63, Note: d
+Time: 144.87, Note: k
+Time: 145.06, Note: f
+Time: 145.29, Note: j
+Time: 145.54, Note: d
+Time: 145.74, Note: k
+Time: 146.02, Note: f
+Time: 146.58, Note: j
+Time: 146.75, Note: d
+Time: 146.88, Note: k
+Time: 147.03, Note: f
+Time: 147.19, Note: j
+Time: 147.41, Note: d
+Time: 147.65, Note: k
+Time: 147.89, Note: f
+Time: 148.17, Note: j
+Time: 148.37, Note: d
+Time: 148.62, Note: k
+Time: 148.79, Note: f
+Time: 149.00, Note: j
+Time: 149.24, Note: d
+Time: 149.43, Note: k
+Time: 149.61, Note: f
+Time: 150.16, Note: j
+Time: 150.43, Note: d
+Slider: StartTime: 150.40, EndTime: 150.74, Key: k
