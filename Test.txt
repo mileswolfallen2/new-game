@@ -1,0 +1,131 @@
+<!-- auth.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up / Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1>Sign Up</h1>
+  <input id="signup-email" type="email" placeholder="Email">
+  <input id="signup-password" type="password" placeholder="Password">
+  <button onclick="signUp()">Sign Up</button>
+
+  <h1>Login</h1>
+  <input id="login-email" type="email" placeholder="Email">
+  <input id="login-password" type="password" placeholder="Password">
+  <button onclick="signIn()">Login</button>
+
+  <script>
+    const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_ANON_KEY');
+
+    async function signUp() {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) alert(error.message);
+      else alert('Signed up! Check your email to confirm.');
+    }
+
+    async function signIn() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) alert(error.message);
+      else alert('Logged in!');
+    }
+  </script>
+</body>
+</html>
+
+<!-- editor.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Level Editor</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1>Level Editor</h1>
+  <input id="level-title" type="text" placeholder="Level Title">
+  <textarea id="level-data" placeholder="Paste your level JSON here" rows="10" cols="50"></textarea>
+  <button onclick="uploadLevel()">Upload Level</button>
+
+  <script>
+    const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_ANON_KEY');
+
+    async function uploadLevel() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert('You must be logged in to upload.');
+
+      const title = document.getElementById('level-title').value;
+      const levelData = document.getElementById('level-data').value;
+
+      const { error } = await supabase.from('levels').insert([
+        { user_id: user.id, title, level_data: levelData }
+      ]);
+
+      if (error) alert(error.message);
+      else alert('Level uploaded!');
+    }
+  </script>
+</body>
+</html>
+
+<!-- browser.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browse Levels</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1>Browse Levels</h1>
+  <ul id="levels"></ul>
+
+  <script>
+    const supabase = supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_ANON_KEY');
+
+    async function fetchLevels() {
+      const { data, error } = await supabase.from('levels').select('*').order('created_at', { ascending: false });
+      if (error) return alert(error.message);
+
+      const list = document.getElementById('levels');
+      list.innerHTML = '';
+      data.forEach(level => {
+        const li = document.createElement('li');
+        li.textContent = `${level.title} by ${level.user_id}`;
+        li.onclick = () => alert(level.level_data);
+        list.appendChild(li);
+      });
+    }
+
+    fetchLevels();
+  </script>
+</body>
+</html>
+
+
+I've created three HTML files:
+
+1. auth.html – Sign up and login
+
+
+2. editor.html – Paste and upload your level
+
+
+3. browser.html – Browse and view others' levels
+
+
+
+You'll need to:
+
+Replace 'YOUR_SUPABASE_URL' and 'YOUR_ANON_KEY' with values from your Supabase project.
+
+Create a levels table in Supabase with fields: id, user_id, title, level_data, and created_at.
+
+
+Would you like help setting up the Supabase backend or refining the UI further?
