@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Maps - Simple Rhythm Game</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #0ff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #mapList {
+      max-width: 800px;
+      margin: 0 auto;
+      list-style: none;
+      padding: 0;
+    }
+    #mapList li {
+      background: #111;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff inset;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #mapList li:hover {
+      background: #222;
+    }
+    .map-title {
+      font-weight: bold;
+    }
+    .map-author {
+      font-style: italic;
+      font-size: 0.9em;
+      color: #66ffff;
+    }
+    button {
+      background-color: #111;
+      border: none;
+      border-radius: 6px;
+      color: #0ff;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: 0 0 5px #0ff inset;
+    }
+    button:hover {
+      background-color: #222;
+    }
+    #loginStatus {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #navButtons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #navButtons button {
+      margin: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Browse Published Maps</h1>
+  <div id="loginStatus"></div>
+  <div id="navButtons">
+    <button onclick="location.href='editor2.html'">Create New Map</button>
+    <button onclick="location.href='login.html'">Login</button>
+    <button onclick="location.href='signup.html'">Sign Up</button>
+  </div>
+  <ul id="mapList"></ul>
+
+  <script>
+    // Check login status
+    function getCurrentUser() {
+      return localStorage.getItem('currentUser');
+    }
+
+    function setLoginStatus() {
+      const loginStatus = document.getElementById('loginStatus');
+      const user = getCurrentUser();
+      if (user) {
+        loginStatus.textContent = 'Logged in as: ' + user;
+      } else {
+        loginStatus.textContent = 'Not logged in';
+      }
+    }
+
+    // Load published maps from localStorage
+    function loadPublishedMaps() {
+      const mapList = document.getElementById('mapList');
+      mapList.innerHTML = '';
+      const maps = JSON.parse(localStorage.getItem('publishedMaps') || '[]');
+      if (maps.length === 0) {
+        mapList.innerHTML = '<li>No maps published yet.</li>';
+        return;
+      }
+      maps.forEach((map, index) => {
+        const li = document.createElement('li');
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'map-title';
+        titleSpan.textContent = map.title || 'Untitled Map';
+
+        const authorSpan = document.createElement('span');
+        authorSpan.className = 'map-author';
+        authorSpan.textContent = 'by ' + (map.author || 'Unknown');
+
+        const loadBtn = document.createElement('button');
+        loadBtn.textContent = 'Load';
+        loadBtn.addEventListener('click', () => {
+          // Load map data into editor2.html via URL parameter
+          const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
+          const url = `editor2.html?chart=${encodedData}`;
+          window.location.href = url;
+        });
+
+        li.appendChild(titleSpan);
+        li.appendChild(authorSpan);
+        li.appendChild(loadBtn);
+        mapList.appendChild(li);
+      });
+    }
+
+    setLoginStatus();
+    loadPublishedMaps();
+  </script>
+</body>
+</html>
