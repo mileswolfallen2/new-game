@@ -109,7 +109,7 @@
       const mapList = document.getElementById('mapList');
       mapList.innerHTML = '';
       try {
-        const response = await fetch('http://localhost:3001/api/maps');
+        const response = await fetch('https://curly-pancake-454jgjgj7wqcq56g-3001.app.github.dev/api/maps');
         if (!response.ok) throw new Error('Failed to fetch maps');
         const maps = await response.json();
         if (maps.length === 0) {
@@ -128,6 +128,12 @@
 
           const loadBtn = document.createElement('button');
           loadBtn.textContent = 'Load';
+
+          const currentUser = getCurrentUser();
+          if (currentUser !== map.author) {
+            loadBtn.style.display = 'none';
+          }
+
           loadBtn.addEventListener('click', () => {
             // Load map data into editor2.html via URL parameter
             const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
@@ -135,9 +141,34 @@
             window.location.href = url;
           });
 
+          // Map of song titles to audio file paths
+          const songMap = {
+            "Neon Dreams": "/songs/song.mp3",
+            "All My Stars": "/songs/song2.mp3",
+            "Digital Sunset": "/songs/song3.mp3",
+            "Cyber Rush": "/songs/song4.mp3",
+            "Night Drive": "/songs/song5.mp3",
+            "Never": "/songs/song6.mp3",
+            "Battle Under A Broken Sky": "/songs/battleundersky.mp3",
+            "Press X Twice": "/songs/Press X Twice.mp3",
+            "Song 7": "/songs/videoplayback1.mp3",
+            "Mega Man 2 — Staff Roll (piano)": "/songs/Mega Man 2 — Staff Roll (piano).mp3"
+          };
+
+          const playBtn = document.createElement('button');
+          playBtn.textContent = 'Play';
+          playBtn.addEventListener('click', () => {
+            // Load map data into play.html via URL parameter with song audio source
+            const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
+            const songUrl = songMap[map.title] || '';
+            const url = `play.html?chart=${encodedData}&song=${encodeURIComponent(songUrl)}`;
+            window.location.href = url;
+          });
+
           li.appendChild(titleSpan);
           li.appendChild(authorSpan);
           li.appendChild(loadBtn);
+          li.appendChild(playBtn);
           mapList.appendChild(li);
         });
       } catch (error) {
