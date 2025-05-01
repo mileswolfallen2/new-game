@@ -168,10 +168,17 @@
           // Create Delete button visible only to map author
           const deleteBtn = document.createElement('button');
           deleteBtn.textContent = 'Delete';
-          if (currentUser !== map.author) {
+
+          // Hide or disable delete button if current user is not author or map._id is undefined
+          if (currentUser !== map.author || !map._id) {
             deleteBtn.style.display = 'none';
           }
+
           deleteBtn.addEventListener('click', async () => {
+            if (!map._id) {
+              alert('Invalid map ID. Cannot delete.');
+              return;
+            }
             if (!confirm(`Are you sure you want to delete the map "${map.title}"?`)) return;
             try {
               const token = localStorage.getItem('token');

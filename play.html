@@ -45,6 +45,9 @@
   </div>
   <audio id="song" crossorigin="anonymous"></audio>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div style="text-align:center; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+    <button id="playButton" style="padding: 10px 30px; font-size: 18px; border-radius: 12px; background-color: #0ff; border: none; cursor: pointer; font-weight: bold;">Play</button>
+  </div>
 
   <script>
     // Parse map data and song URL from URL parameters
@@ -452,6 +455,7 @@
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
       const encodedChart = params.get('chart');
+      const autoplay = params.get('autoplay') === 'true';
       if (encodedChart) {
         try {
           const chartData = JSON.parse(decodeURIComponent(atob(encodedChart)));
@@ -475,11 +479,26 @@
             }
           });
           setAudioSource();
-          startGame();
+          if (autoplay) {
+            startGame();
+            document.getElementById('playButton').disabled = true;
+            document.getElementById('playButton').style.opacity = 0.5;
+            document.getElementById('playButton').style.cursor = 'default';
+          }
         } catch (e) {
           alert('Failed to load map data.');
           console.error(e);
         }
+      }
+    });
+
+    // Add event listener to Play button to start the game on user interaction
+    document.getElementById('playButton').addEventListener('click', () => {
+      if (!gameStarted) {
+        startGame();
+        document.getElementById('playButton').disabled = true;
+        document.getElementById('playButton').style.opacity = 0.5;
+        document.getElementById('playButton').style.cursor = 'default';
       }
     });
   </script>
