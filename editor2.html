@@ -27,6 +27,7 @@
       padding: 10px;
       font-size: 16px;
       box-shadow: 0 0 10px #0ff inset;
+      resize: vertical;
     }
     button, select {
       padding: 10px 20px;
@@ -73,6 +74,24 @@
       position: absolute;
       border-radius: 10px;
     }
+    #shareUrlContainer {
+      width: 80%;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #shareUrl {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
+      background-color: #111;
+      color: #0ff;
+      box-shadow: inset 0 0 5px #0ff;
+      user-select: all;
+    }
   </style>
 </head>
 <body>
@@ -88,18 +107,30 @@
     <option value="/songs/Press X Twice.mp3">Press X Twice</option>
     <option value="/songs/videoplayback1.mp3">steevs lava chicen</option>
     <option value="/songs/Mega Man 2 — Staff Roll (piano).mp3">Mega Man 2 — Staff Roll (piano)</option>
-    
   </select>
   <audio id="songAudio" controls></audio>
   <p>Press <strong>D</strong>, <strong>F</strong>, <strong>J</strong>, or <strong>K</strong> to create notes.</p>
   <div class="chart-visual" id="chartVisual"></div>
   <textarea id="chartEditor" readonly placeholder="Chart data will appear here..."></textarea>
-  <button id="exportButton">Export Chart</button>
-  <button onclick="location.href='test.html'">Back to Game</button>
+  <div>
+    <button id="exportButton">Export Chart</button>
+    <button id="shareButton">Share Chart</button>
+    <button id="publishButton">Publish Map</button>
+    <button onclick="location.href='brows.html'">Browse Maps</button>
+    <button onclick="location.href='login.html'">Login</button>
+  </div>
+  <div id="shareUrlContainer" style="display:none;">
+    <input type="text" id="shareUrl" readonly />
+    <button id="copyShareUrlBtn">Copy</button>
+  </div>
 
   <script>
     const chartEditor = document.getElementById('chartEditor');
     const exportButton = document.getElementById('exportButton');
+    const shareButton = document.getElementById('shareButton');
+    const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
+    const shareUrlContainer = document.getElementById('shareUrlContainer');
+    const shareUrlInput = document.getElementById('shareUrl');
     const songAudio = document.getElementById('songAudio');
     const chartVisual = document.getElementById('chartVisual');
     const songSelector = document.getElementById('songSelector');
@@ -227,7 +258,149 @@
       link.download = "chart.txt";
       link.click();
     });
+
+    // Encode chart data as base64 JSON string for sharing
+    function encodeChartData(data) {
+      return btoa(encodeURIComponent(JSON.stringify(data)));
+    }
+
+    // Decode chart data from base64 JSON string
+    function decodeChartData(encoded) {
+      try {
+        return JSON.parse(decodeURIComponent(atob(encoded)));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Generate share URL with encoded chart data as URL parameter
+    function generateShareUrl() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const encodedData = encodeChartData(chartData);
+      return `${baseUrl}?chart=${encodedData}`;
+    }
+
+    // Load chart data and song from URL parameter if present
+    function loadChartFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const encodedChart = params.get('chart');
+      const songParam = params.get('song');
+      if (encodedChart) {
+        const data = decodeChartData(encodedChart);
+        if (data && Array.isArray(data)) {
+          chartData = data;
+          updateChartEditor();
+          updateChartVisual();
+          alert("Loaded shared chart from URL.");
+        } else {
+          alert("Failed to load shared chart data.");
+        }
+      }
+      if (songParam) {
+        songSelector.value = songParam;
+        songAudio.src = songParam;
+        songAudio.load();
+      }
+    }
+
+    // Update chart editor textarea with current chart data
+    function updateChartEditor() {
+      chartEditor.value = chartData
+        .map((note) =>
+          note.type === "slider"
+            ? `Slider: StartTime: ${note.startTime}, EndTime: ${note.endTime}, Key: ${note.note}`
+            : `Time: ${note.time}, Note: ${note.note}`
+        )
+        .join("\n");
+    }
+
+    // Clear current chart visuals
+    function clearChartVisual() {
+      while (chartVisual.firstChild) {
+        chartVisual.removeChild(chartVisual.firstChild);
+      }
+    }
+
+    // Update chart visuals based on chartData
+    function updateChartVisual() {
+      clearChartVisual();
+      chartData.forEach(note => {
+        if (note.type === "slider") {
+          const sliderElement = document.createElement("div");
+          sliderElement.className = "slider";
+          sliderElement.style.left = `${keyMap[note.note].position}px`;
+          sliderElement.style.bottom = "0px";
+          sliderElement.style.height = `${(note.endTime - note.startTime) * 100}px`;
+          chartVisual.appendChild(sliderElement);
+        } else {
+          const noteElement = document.createElement("div");
+          noteElement.className = "note";
+          noteElement.style.left = `${keyMap[note.note].position}px`;
+          noteElement.style.bottom = "0px";
+          chartVisual.appendChild(noteElement);
+        }
+      });
+    }
+
+    // Share button click handler
+    shareButton.addEventListener("click", () => {
+      if (chartData.length === 0) {
+        alert("No chart data to share.");
+        return;
+      }
+      const shareUrl = generateShareUrl();
+      shareUrlInput.value = shareUrl;
+      shareUrlContainer.style.display = "flex";
+    });
+
+    // Publish button click handler
+    const publishButton = document.getElementById('publishButton');
+    publishButton.addEventListener('click', async () => {
+      if (chartData.length === 0) {
+        alert('No chart data to publish.');
+        return;
+      }
+      const title = prompt('Enter a title for your map:');
+      if (!title) {
+        alert('Publishing cancelled: title is required.');
+        return;
+      }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to publish maps.');
+        return;
+      }
+      try {
+        const response = await fetch('https://curly-pancake-454jgjgj7wqcq56g-3001.app.github.dev/api/maps', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ title, chartData })
+        });
+        if (response.ok) {
+          alert('Map published successfully!');
+        } else {
+          const data = await response.json();
+          alert('Failed to publish map: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        alert('Error connecting to server.');
+      }
+    });
+
+    // Copy share URL button handler
+    copyShareUrlBtn.addEventListener("click", () => {
+      shareUrlInput.select();
+      document.execCommand("copy");
+      alert("Share URL copied to clipboard.");
+    });
+
+    // On page load, check for shared chart in URL
+    window.addEventListener("load", () => {
+      loadChartFromUrl();
+    });
   </script>
 </body>
 </html>
-<!--just a test ignore this-->

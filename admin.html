@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Simple Rhythm Game</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #0ff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    #userSearchInput, #mapSearchInput {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 10px;
+      background: #222;
+      color: #0ff;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-height: 150px;
+      overflow-y: auto;
+      background: #111;
+      border-radius: 6px;
+    }
+    li {
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #0ff;
+    }
+    li:last-child {
+      border-bottom: none;
+    }
+    button {
+      background-color: #111;
+      border: none;
+      border-radius: 6px;
+      color: #0ff;
+      padding: 5px 10px;
+      cursor: pointer;
+      box-shadow: 0 0 5px #0ff inset;
+    }
+    button:hover {
+      background-color: #222;
+    }
+    #logoutBtn {
+      display: block;
+      margin: 20px auto;
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Admin Panel</h1>
+  <button id="logoutBtn">Logout</button>
+
+  <div>
+    <h3>Search Users</h3>
+    <input type="text" id="userSearchInput" placeholder="Search users by username" />
+    <ul id="userSearchResults"></ul>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <h3>Search Maps</h3>
+    <input type="text" id="mapSearchInput" placeholder="Search maps by title or author" />
+    <ul id="mapSearchResults"></ul>
+  </div>
+
+  <script>
+    function getCurrentUser() {
+      return localStorage.getItem('currentUser');
+    }
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function redirectToLogin() {
+      alert('Access denied. Please login as admin.');
+      window.location.href = 'login.html';
+    }
+
+    // Check if current user is "miles"
+    const currentUser = getCurrentUser();
+    if (currentUser !== 'miles') {
+      redirectToLogin();
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    });
+
+    async function searchUsers(query) {
+      if (!query) {
+        document.getElementById('userSearchResults').innerHTML = '';
+        return;
+      }
+      try {
+        const token = getToken();
+        const response = await fetch(`/api/users?search=${encodeURIComponent(query)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const users = await response.json();
+        displayUserSearchResults(users);
+      } catch (error) {
+        document.getElementById('userSearchResults').innerHTML = '<li>Error fetching users</li>';
+      }
+    }
+
+    function displayUserSearchResults(users) {
+      const ul = document.getElementById('userSearchResults');
+      ul.innerHTML = '';
+      users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user.username;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => deleteUser(user.username));
+        li.appendChild(delBtn);
+        ul.appendChild(li);
+      });
+    }
+
+    async function deleteUser(username) {
+      if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
+      try {
+        const token = getToken();
+        const response = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (response.ok) {
+          alert('User deleted successfully');
+          searchUsers(document.getElementById('userSearchInput').value);
+        } else {
+          const data = await response.json();
+          alert('Failed to delete user: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        alert('Error connecting to server');
+      }
+    }
+
+    async function searchMaps(query) {
+      if (!query) {
+        document.getElementById('mapSearchResults').innerHTML = '';
+        return;
+      }
+      try {
+        const token = getToken();
+        const response = await fetch(`/api/maps/search?query=${encodeURIComponent(query)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!response.ok) throw new Error('Failed to fetch maps');
+        const maps = await response.json();
+        displayMapSearchResults(maps);
+      } catch (error) {
+        document.getElementById('mapSearchResults').innerHTML = '<li>Error fetching maps</li>';
+      }
+    }
+
+    function displayMapSearchResults(maps) {
+      const ul = document.getElementById('mapSearchResults');
+      ul.innerHTML = '';
+      maps.forEach(map => {
+        const li = document.createElement('li');
+        li.textContent = `${map.title} by ${map.author}`;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => deleteMap(map.id));
+        li.appendChild(delBtn);
+        ul.appendChild(li);
+      });
+    }
+
+    async function deleteMap(id) {
+      if (!confirm('Are you sure you want to delete this map?')) return;
+      try {
+        const token = getToken();
+        const response = await fetch(`/api/maps/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (response.ok) {
+          alert('Map deleted successfully');
+          searchMaps(document.getElementById('mapSearchInput').value);
+        } else {
+          const data = await response.json();
+          alert('Failed to delete map: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        alert('Error connecting to server');
+      }
+    }
+
+    document.getElementById('userSearchInput').addEventListener('input', (e) => {
+      searchUsers(e.target.value);
+    });
+
+    document.getElementById('mapSearchInput').addEventListener('input', (e) => {
+      searchMaps(e.target.value);
+    });
+  </script>
+</body>
+</html>
