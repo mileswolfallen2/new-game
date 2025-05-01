@@ -78,11 +78,7 @@
     const signupBtn = document.getElementById('signupBtn');
     const messageDiv = document.getElementById('message');
 
-    function getUsers() {
-      return JSON.parse(localStorage.getItem('users') || '{}');
-    }
-
-    signupBtn.addEventListener('click', () => {
+    signupBtn.addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
@@ -97,20 +93,28 @@
         return;
       }
 
-      const users = getUsers();
-      if (users[username]) {
-        messageDiv.textContent = 'Username already exists.';
-        return;
+      try {
+        const response = await fetch('http://localhost:3001/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('currentUser', username);
+          messageDiv.style.color = '#0f0';
+          messageDiv.textContent = 'Sign up successful! Redirecting...';
+          setTimeout(() => {
+            window.location.href = 'brows.html';
+          }, 1500);
+        } else {
+          messageDiv.style.color = '#f00';
+          messageDiv.textContent = data.message || 'Sign up failed.';
+        }
+      } catch (error) {
+        messageDiv.style.color = '#f00';
+        messageDiv.textContent = 'Error connecting to server.';
       }
-
-      users[username] = password;
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('currentUser', username);
-      messageDiv.style.color = '#0f0';
-      messageDiv.textContent = 'Sign up successful! Redirecting...';
-      setTimeout(() => {
-        window.location.href = 'brows.html';
-      }, 1500);
     });
   </script>
 </body>

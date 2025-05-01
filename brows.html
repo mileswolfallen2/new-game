@@ -89,45 +89,60 @@
       const loginStatus = document.getElementById('loginStatus');
       const user = getCurrentUser();
       if (user) {
-        loginStatus.textContent = 'Logged in as: ' + user;
+        loginStatus.textContent = 'Logged in as: ' + user + ' ';
+        const logoutBtn = document.createElement('button');
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.addEventListener('click', () => {
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('token');
+          setLoginStatus();
+          loadPublishedMaps();
+        });
+        loginStatus.appendChild(logoutBtn);
       } else {
         loginStatus.textContent = 'Not logged in';
       }
     }
 
-    // Load published maps from localStorage
-    function loadPublishedMaps() {
+    // Load published maps from backend API
+    async function loadPublishedMaps() {
       const mapList = document.getElementById('mapList');
       mapList.innerHTML = '';
-      const maps = JSON.parse(localStorage.getItem('publishedMaps') || '[]');
-      if (maps.length === 0) {
-        mapList.innerHTML = '<li>No maps published yet.</li>';
-        return;
-      }
-      maps.forEach((map, index) => {
-        const li = document.createElement('li');
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'map-title';
-        titleSpan.textContent = map.title || 'Untitled Map';
+      try {
+        const response = await fetch('http://localhost:3001/api/maps');
+        if (!response.ok) throw new Error('Failed to fetch maps');
+        const maps = await response.json();
+        if (maps.length === 0) {
+          mapList.innerHTML = '<li>No maps published yet.</li>';
+          return;
+        }
+        maps.forEach((map) => {
+          const li = document.createElement('li');
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'map-title';
+          titleSpan.textContent = map.title || 'Untitled Map';
 
-        const authorSpan = document.createElement('span');
-        authorSpan.className = 'map-author';
-        authorSpan.textContent = 'by ' + (map.author || 'Unknown');
+          const authorSpan = document.createElement('span');
+          authorSpan.className = 'map-author';
+          authorSpan.textContent = 'by ' + (map.author || 'Unknown');
 
-        const loadBtn = document.createElement('button');
-        loadBtn.textContent = 'Load';
-        loadBtn.addEventListener('click', () => {
-          // Load map data into editor2.html via URL parameter
-          const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
-          const url = `editor2.html?chart=${encodedData}`;
-          window.location.href = url;
+          const loadBtn = document.createElement('button');
+          loadBtn.textContent = 'Load';
+          loadBtn.addEventListener('click', () => {
+            // Load map data into editor2.html via URL parameter
+            const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
+            const url = `editor2.html?chart=${encodedData}`;
+            window.location.href = url;
+          });
+
+          li.appendChild(titleSpan);
+          li.appendChild(authorSpan);
+          li.appendChild(loadBtn);
+          mapList.appendChild(li);
         });
-
-        li.appendChild(titleSpan);
-        li.appendChild(authorSpan);
-        li.appendChild(loadBtn);
-        mapList.appendChild(li);
-      });
+      } catch (error) {
+        mapList.innerHTML = '<li>Error loading maps.</li>';
+      }
     }
 
     setLoginStatus();

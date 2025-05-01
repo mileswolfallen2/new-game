@@ -349,7 +349,7 @@
 
     // Publish button click handler
     const publishButton = document.getElementById('publishButton');
-    publishButton.addEventListener('click', () => {
+    publishButton.addEventListener('click', async () => {
       if (chartData.length === 0) {
         alert('No chart data to publish.');
         return;
@@ -359,20 +359,29 @@
         alert('Publishing cancelled: title is required.');
         return;
       }
-      const user = localStorage.getItem('currentUser');
-      if (!user) {
+      const token = localStorage.getItem('token');
+      if (!token) {
         alert('You must be logged in to publish maps.');
         return;
       }
-      const maps = JSON.parse(localStorage.getItem('publishedMaps') || '[]');
-      maps.push({
-        id: Date.now(),
-        title: title,
-        author: user,
-        chartData: chartData
-      });
-      localStorage.setItem('publishedMaps', JSON.stringify(maps));
-      alert('Map published successfully!');
+      try {
+        const response = await fetch('http://localhost:3001/api/maps', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ title, chartData })
+        });
+        if (response.ok) {
+          alert('Map published successfully!');
+        } else {
+          const data = await response.json();
+          alert('Failed to publish map: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        alert('Error connecting to server.');
+      }
     });
 
     // Copy share URL button handler

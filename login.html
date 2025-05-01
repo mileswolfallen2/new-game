@@ -77,11 +77,7 @@
     const loginBtn = document.getElementById('loginBtn');
     const messageDiv = document.getElementById('message');
 
-    function getUsers() {
-      return JSON.parse(localStorage.getItem('users') || '{}');
-    }
-
-    loginBtn.addEventListener('click', () => {
+    loginBtn.addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
 
@@ -90,17 +86,28 @@
         return;
       }
 
-      const users = getUsers();
-      if (users[username] && users[username] === password) {
-        localStorage.setItem('currentUser', username);
-        messageDiv.style.color = '#0f0';
-        messageDiv.textContent = 'Login successful! Redirecting...';
-        setTimeout(() => {
-          window.location.href = 'brows.html';
-        }, 1500);
-      } else {
+      try {
+        const response = await fetch('http://localhost:3001/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('currentUser', data.username);
+          messageDiv.style.color = '#0f0';
+          messageDiv.textContent = 'Login successful! Redirecting...';
+          setTimeout(() => {
+            window.location.href = 'brows.html';
+          }, 1500);
+        } else {
+          messageDiv.style.color = '#f00';
+          messageDiv.textContent = data.message || 'Login failed.';
+        }
+      } catch (error) {
         messageDiv.style.color = '#f00';
-        messageDiv.textContent = 'Invalid username or password.';
+        messageDiv.textContent = 'Error connecting to server.';
       }
     });
   </script>
