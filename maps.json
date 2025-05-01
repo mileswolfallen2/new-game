@@ -1,203 +1,47 @@
 [
   {
-    "id": 1746121223662,
+    "id": 1746124353556,
     "title": "test",
     "author": "miles",
     "chartData": [
       {
-        "time": "0.93",
+        "type": "slider",
+        "startTime": "0.98",
+        "endTime": "2.40",
         "note": "j"
       },
       {
-        "time": "1.10",
-        "note": "j"
-      },
-      {
-        "time": "1.35",
-        "note": "k"
-      },
-      {
-        "time": "1.38",
+        "type": "slider",
+        "startTime": "1.01",
+        "endTime": "2.44",
         "note": "d"
       },
       {
-        "time": "1.47",
-        "note": "j"
-      },
-      {
-        "time": "1.48",
-        "note": "f"
-      },
-      {
-        "time": "1.57",
+        "type": "slider",
+        "startTime": "3.51",
+        "endTime": "5.09",
         "note": "k"
       },
       {
-        "time": "1.59",
+        "type": "slider",
+        "startTime": "3.46",
+        "endTime": "5.10",
+        "note": "f"
+      },
+      {
+        "time": "6.01",
+        "note": "j"
+      },
+      {
+        "time": "6.19",
         "note": "d"
       },
       {
-        "time": "1.68",
-        "note": "j"
-      },
-      {
-        "time": "1.70",
-        "note": "f"
-      },
-      {
-        "time": "1.77",
-        "note": "d"
-      },
-      {
-        "time": "1.78",
+        "time": "6.31",
         "note": "k"
       },
       {
-        "time": "1.92",
-        "note": "j"
-      },
-      {
-        "time": "1.93",
-        "note": "f"
-      },
-      {
-        "time": "2.00",
-        "note": "k"
-      },
-      {
-        "time": "2.00",
-        "note": "d"
-      },
-      {
-        "time": "2.12",
-        "note": "j"
-      },
-      {
-        "time": "2.15",
-        "note": "f"
-      },
-      {
-        "time": "2.24",
-        "note": "k"
-      },
-      {
-        "time": "2.24",
-        "note": "d"
-      },
-      {
-        "time": "2.36",
-        "note": "j"
-      },
-      {
-        "time": "2.38",
-        "note": "f"
-      },
-      {
-        "time": "2.48",
-        "note": "k"
-      },
-      {
-        "time": "2.49",
-        "note": "d"
-      },
-      {
-        "time": "2.62",
-        "note": "j"
-      },
-      {
-        "time": "2.64",
-        "note": "f"
-      },
-      {
-        "time": "2.72",
-        "note": "d"
-      },
-      {
-        "time": "2.73",
-        "note": "k"
-      },
-      {
-        "time": "2.81",
-        "note": "j"
-      },
-      {
-        "time": "2.85",
-        "note": "f"
-      },
-      {
-        "time": "2.93",
-        "note": "k"
-      },
-      {
-        "time": "3.08",
-        "note": "f"
-      },
-      {
-        "time": "3.10",
-        "note": "k"
-      },
-      {
-        "time": "3.25",
-        "note": "f"
-      },
-      {
-        "time": "3.27",
-        "note": "k"
-      },
-      {
-        "time": "3.40",
-        "note": "f"
-      },
-      {
-        "time": "3.42",
-        "note": "k"
-      },
-      {
-        "time": "3.56",
-        "note": "j"
-      },
-      {
-        "time": "3.58",
-        "note": "d"
-      },
-      {
-        "time": "3.71",
-        "note": "j"
-      },
-      {
-        "time": "3.74",
-        "note": "d"
-      },
-      {
-        "time": "3.87",
-        "note": "j"
-      },
-      {
-        "time": "3.89",
-        "note": "d"
-      },
-      {
-        "time": "4.03",
-        "note": "k"
-      },
-      {
-        "time": "4.08",
-        "note": "f"
-      },
-      {
-        "time": "4.24",
-        "note": "j"
-      },
-      {
-        "time": "4.32",
-        "note": "d"
-      },
-      {
-        "time": "4.36",
-        "note": "k"
-      },
-      {
-        "time": "4.40",
+        "time": "6.42",
         "note": "f"
       }
     ]

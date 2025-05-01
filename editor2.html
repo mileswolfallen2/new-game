@@ -280,10 +280,11 @@
       return `${baseUrl}?chart=${encodedData}`;
     }
 
-    // Load chart data from URL parameter if present
+    // Load chart data and song from URL parameter if present
     function loadChartFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const encodedChart = params.get('chart');
+      const songParam = params.get('song');
       if (encodedChart) {
         const data = decodeChartData(encodedChart);
         if (data && Array.isArray(data)) {
@@ -294,6 +295,11 @@
         } else {
           alert("Failed to load shared chart data.");
         }
+      }
+      if (songParam) {
+        songSelector.value = songParam;
+        songAudio.src = songParam;
+        songAudio.load();
       }
     }
 
