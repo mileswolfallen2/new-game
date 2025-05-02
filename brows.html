@@ -80,6 +80,8 @@
   <ul id="mapList"></ul>
 
   <script>
+    const API_BASE_URL = 'http://localhost:3001/api';
+
     // Check login status
     function getCurrentUser() {
       return localStorage.getItem('currentUser');
@@ -109,7 +111,7 @@
       const mapList = document.getElementById('mapList');
       mapList.innerHTML = '';
       try {
-        const response = await fetch('https://bug-free-space-succotash-q77746g7pjrhx47p-3001.app.github.dev/api/maps');
+        const response = await fetch(`${API_BASE_URL}/maps`);
         if (!response.ok) throw new Error('Failed to fetch maps');
         const maps = await response.json();
         if (maps.length === 0) {
@@ -186,7 +188,7 @@
                 alert('You must be logged in to delete maps.');
                 return;
               }
-              const response = await fetch(`https://curly-pancake-454jgjgj7wqcq56g-3001.app.github.dev/api/maps/${map._id}`, {
+              const response = await fetch(`${API_BASE_URL}/maps/${map._id}`, {
                 method: 'DELETE',
                 headers: {
                   'Authorization': 'Bearer ' + token
@@ -212,7 +214,7 @@
           mapList.appendChild(li);
         });
       } catch (error) {
-        mapList.innerHTML = '<li>Error loading maps. the srver mit be offine</li>';
+        mapList.innerHTML = '<li>Error loading maps. The server might be offline.</li>';
       }
     }
 
