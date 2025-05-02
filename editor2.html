@@ -275,9 +275,15 @@
 
     // Generate share URL with encoded chart data as URL parameter
     function generateShareUrl() {
-      const baseUrl = window.location.origin + window.location.pathname;
+      const baseUrl = window.location.origin + '/play.html';
       const encodedData = encodeChartData(chartData);
-      return `${baseUrl}?chart=${encodedData}`;
+      const songValue = songSelector.value;
+      let url = `${baseUrl}?chart=${encodedData}`;
+      if (songValue && songValue.trim() !== '') {
+        const songParam = encodeURIComponent(songValue);
+        url += `&song=${songParam}`;
+      }
+      return url;
     }
 
     // Load chart data and song from URL parameter if present
@@ -346,6 +352,10 @@
     shareButton.addEventListener("click", () => {
       if (chartData.length === 0) {
         alert("No chart data to share.");
+        return;
+      }
+      if (!songSelector.value || songSelector.value.trim() === '') {
+        alert("Please select a song before sharing the chart.");
         return;
       }
       const shareUrl = generateShareUrl();

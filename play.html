@@ -119,11 +119,25 @@
 
     // Set audio source from song URL parameter
     function setAudioSource() {
-      const songUrl = getSongUrlFromUrl();
+      let songUrl = getSongUrlFromUrl();
+      console.log("Song URL parameter:", songUrl);
+      const playButton = document.getElementById('playButton');
+      if (!songUrl) {
+        // Fallback to default song if no song URL provided
+        songUrl = '/songs/song.mp3';
+        console.log("Using default song URL:", songUrl);
+      }
       if (songUrl) {
         audio.src = songUrl;
+        playButton.disabled = false;
+        playButton.style.opacity = 1;
+        playButton.style.cursor = 'pointer';
       } else {
         console.warn('No song URL provided');
+        alert('No song URL provided. Please provide a valid song URL parameter.');
+        playButton.disabled = true;
+        playButton.style.opacity = 0.5;
+        playButton.style.cursor = 'default';
       }
     }
 
@@ -421,6 +435,50 @@
       togglePause();
     });
 
+    // Add Restart button
+    const restartButton = document.createElement('button');
+    restartButton.id = 'restartButton';
+    restartButton.textContent = 'Restart';
+    restartButton.style.marginTop = '15px';
+    restartButton.style.padding = '15px 40px';
+    restartButton.style.fontSize = '18px';
+    restartButton.style.background = '#0ff';
+    restartButton.style.color = '#000';
+    restartButton.style.border = 'none';
+    restartButton.style.borderRadius = '16px';
+    restartButton.style.cursor = 'pointer';
+    restartButton.style.transition = 'all 0.3s ease';
+    restartButton.style.fontWeight = 'bold';
+    restartButton.style.textTransform = 'uppercase';
+    pauseMenu.appendChild(restartButton);
+
+    restartButton.addEventListener('click', () => {
+      hidePauseMenu();
+      resetGame();
+      startGame();
+    });
+
+    // Add Quit button
+    const quitButton = document.createElement('button');
+    quitButton.id = 'quitButton';
+    quitButton.textContent = 'Quit';
+    quitButton.style.marginTop = '15px';
+    quitButton.style.padding = '15px 40px';
+    quitButton.style.fontSize = '18px';
+    quitButton.style.background = '#0ff';
+    quitButton.style.color = '#000';
+    quitButton.style.border = 'none';
+    quitButton.style.borderRadius = '16px';
+    quitButton.style.cursor = 'pointer';
+    quitButton.style.transition = 'all 0.3s ease';
+    quitButton.style.fontWeight = 'bold';
+    quitButton.style.textTransform = 'uppercase';
+    pauseMenu.appendChild(quitButton);
+
+    quitButton.addEventListener('click', () => {
+      window.location.href = 'brows.html';
+    });
+
     document.body.appendChild(pauseMenu);
 
     // Show and hide pause menu
@@ -449,6 +507,24 @@
         alert("Autoplay is blocked. Click Play to start the audio.");
         console.error(err);
       });
+    }
+
+    // Reset game state for restart
+    function resetGame() {
+      score = 0;
+      notesHit = 0;
+      missedNotes = 0;
+      feedback = "";
+      feedbackTimer = 0;
+      gameStarted = false;
+      paused = false;
+      notes.forEach(note => note.hit = false);
+      sliders.forEach(slider => {
+        slider.hit = false;
+        slider.active = false;
+      });
+      updateStats();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     // Load map data and set audio source from URL parameter on page load
@@ -496,9 +572,8 @@
     document.getElementById('playButton').addEventListener('click', () => {
       if (!gameStarted) {
         startGame();
-        document.getElementById('playButton').disabled = true;
-        document.getElementById('playButton').style.opacity = 0.5;
-        document.getElementById('playButton').style.cursor = 'default';
+        const playButton = document.getElementById('playButton');
+        playButton.style.display = 'none';
       }
     });
   </script>
