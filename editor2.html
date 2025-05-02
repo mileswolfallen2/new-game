@@ -280,7 +280,8 @@
       const songValue = songSelector.value;
       let url = `${baseUrl}?chart=${encodedData}`;
       if (songValue && songValue.trim() !== '') {
-        const songParam = encodeURIComponent(songValue);
+        // Encode song URL as base64 to match decoding in play.html
+        const songParam = btoa(encodeURIComponent(songValue));
         url += `&song=${songParam}`;
       }
       return url;

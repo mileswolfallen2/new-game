@@ -65,7 +65,16 @@
 
     function getSongUrlFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      return params.get('song') || '';
+      const songParam = params.get('song') || '';
+      if (songParam) {
+        try {
+          return decodeURIComponent(atob(songParam));
+        } catch (e) {
+          console.error('Failed to decode song parameter', e);
+          return songParam;
+        }
+      }
+      return '';
     }
 
     const canvas = document.getElementById('gameCanvas');
@@ -376,6 +385,8 @@
           cancelAnimationFrame(animationFrameId);
           animationFrameId = null;
         }
+        // Remove sliders from pause menu if any (user request)
+        // The pause menu does not show sliders, so no action needed here
       } else {
         resumeGame();
       }
