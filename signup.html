@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up - Simple Rhythm Game</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #0ff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .signup-container {
+      background: #111;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #0ff;
+      width: 300px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      background: #222;
+      color: #0ff;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0ff;
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #66ffff;
+    }
+    .message {
+      margin-top: 15px;
+      color: #f00;
+      font-weight: bold;
+    }
+    a {
+      color: #0ff;
+      text-decoration: none;
+      display: block;
+      margin-top: 15px;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <h2>Sign Up</h2>
+    <input type="text" id="username" placeholder="Username" autocomplete="username" />
+    <input type="password" id="password" placeholder="Password" autocomplete="new-password" />
+    <input type="password" id="confirmPassword" placeholder="Confirm Password" autocomplete="new-password" />
+    <button id="signupBtn">Sign Up</button>
+    <div class="message" id="message"></div>
+    <a href="login.html">Already have an account? Login</a>
+  </div>
+
+  <script>
+    const signupBtn = document.getElementById('signupBtn');
+    const messageDiv = document.getElementById('message');
+
+    signupBtn.addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (!username || !password || !confirmPassword) {
+        messageDiv.textContent = 'Please fill in all fields.';
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        messageDiv.textContent = 'Passwords do not match.';
+        return;
+      }
+
+      try {
+        const response = await fetch('https://bug-free-space-succotash-q77746g7pjrhx47p-3001.app.github.dev/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('currentUser', username);
+          messageDiv.style.color = '#0f0';
+          messageDiv.textContent = 'Sign up successful! Redirecting...';
+          setTimeout(() => {
+            window.location.href = 'brows.html';
+          }, 1500);
+        } else {
+          messageDiv.style.color = '#f00';
+          messageDiv.textContent = data.message || 'Sign up failed.';
+        }
+      } catch (error) {
+        messageDiv.style.color = '#f00';
+        messageDiv.textContent = 'Error connecting to server.';
+      }
+    });
+  </script>
+</body>
+</html>

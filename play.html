@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Play Map - Simple Rhythm Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      overflow: hidden;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #stats {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #0ff;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      z-index: 10;
+    }
+    #stats p {
+      margin: 5px 0;
+    }
+    canvas {
+      display: block;
+      margin: 80px auto;
+      background: #121212;
+      box-shadow: 0 0 40px #0ff;
+      border-radius: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="stats">
+    <p>Score: <span id="score">0</span></p>
+    <p>Notes Hit: <span id="notesHit">0</span></p>
+    <p>Missed Notes: <span id="missedNotes">0</span></p>
+    <p>Accuracy: <span id="accuracy">0%</span></p>
+  </div>
+  <audio id="song" crossorigin="anonymous"></audio>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div style="text-align:center; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+    <button id="playButton" style="padding: 10px 30px; font-size: 18px; border-radius: 12px; background-color: #0ff; border: none; cursor: pointer; font-weight: bold;">Play</button>
+  </div>
+
+  <script>
+    // Removed getMapDataFromUrl function as chart data will be loaded by mapId
+
+    function getSongUrlFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const songParam = params.get('song') || '';
+      if (songParam) {
+        try {
+          return decodeURIComponent(atob(songParam));
+        } catch (e) {
+          console.error('Failed to decode song parameter', e);
+          return songParam;
+        }
+      }
+      return '';
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const audio = document.getElementById('song');
+
+    let notes = [];
+    let sliders = [];
+    let hitEffects = [];
+    let score = 0;
+    let notesHit = 0;
+    let missedNotes = 0;
+    let feedback = "";
+    let feedbackTimer = 0;
+    let animationFrameId = null;
+    const hitZoneY = 500;
+    let noteSpeed = 2;
+
+    // Key bindings for playing notes
+    const keyBinds = { 1: 'd', 2: 'f', 3: 'j', 4: 'k' };
+    const dfjkKeys = Object.values(keyBinds);
+    const lanesMap = {};
+    Object.entries(keyBinds).forEach(([lane, key]) => {
+      lanesMap[key] = 50 + (lane - 1) * 100;
+    });
+
+    const keyStates = {};
+
+    // Load map data from URL
+    function loadMapData(chartData) {
+      notes = [];
+      sliders = [];
+      chartData.forEach(note => {
+        if (note.type === 'slider') {
+          sliders.push({
+            startTime: parseFloat(note.startTime),
+            endTime: parseFloat(note.endTime),
+            key: note.note,
+            hit: false,
+            active: false,
+          });
+        } else {
+          notes.push({
+            time: parseFloat(note.time),
+            key: note.note,
+            hit: false,
+          });
+        }
+      });
+    }
+
+    // Set audio source from song URL parameter
+    function setAudioSource() {
+      let songUrl = getSongUrlFromUrl();
+      console.log("Song URL parameter:", songUrl);
+      const playButton = document.getElementById('playButton');
+      if (!songUrl) {
+        // Fallback to default song if no song URL provided
+        songUrl = '/songs/song.mp3';
+        console.log("Using default song URL:", songUrl);
+      }
+      if (songUrl) {
+        audio.src = songUrl;
+        playButton.disabled = false;
+        playButton.style.opacity = 1;
+        playButton.style.cursor = 'pointer';
+      } else {
+        console.warn('No song URL provided');
+        alert('No song URL provided. Please provide a valid song URL parameter.');
+        playButton.disabled = true;
+        playButton.style.opacity = 0.5;
+        playButton.style.cursor = 'default';
+      }
+    }
+
+    // Update stats display
+    function updateStats() {
+      const totalNotes = notesHit + missedNotes;
+      const accuracy = totalNotes > 0 ? ((notesHit / totalNotes) * 100).toFixed(2) : 0;
+      document.getElementById('score').textContent = score;
+      document.getElementById('notesHit').textContent = notesHit;
+      document.getElementById('missedNotes').textContent = missedNotes;
+      document.getElementById('accuracy').textContent = `${accuracy}%`;
+    }
+
+    // Draw functions
+    function drawNote(x, y) {
+      ctx.fillStyle = '#0ff';
+      ctx.beginPath();
+      ctx.roundRect(x - 20, y - 20, 40, 40, 10);
+      ctx.fill();
+
+      ctx.strokeStyle = '#008888';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawSlider(x, y, length, isActive) {
+      ctx.strokeStyle = isActive ? '#ff0' : '#0ff';
+      ctx.lineWidth = isActive ? 6 : 4;
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y - length);
+      ctx.stroke();
+
+      if (isActive) {
+        ctx.shadowColor = '#ff0';
+        ctx.shadowBlur = 20;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.fillStyle = isActive ? '#ff0' : '#0ff';
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x, y - length, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawHitZone() {
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, hitZoneY);
+      ctx.lineTo(canvas.width, hitZoneY);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+      ctx.lineWidth = 1;
+      for (let i = 1; i < dfjkKeys.length; i++) {
+        const x = (lanesMap[dfjkKeys[i-1]] + lanesMap[dfjkKeys[i]]) / 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let key in lanesMap) {
+        const x = lanesMap[key];
+
+        ctx.fillStyle = keyStates[key] ? '#00aaaa' : '#555';
+        ctx.beginPath();
+        ctx.roundRect(x - 20, hitZoneY - 20, 40, 40, 10);
+        ctx.fill();
+
+        ctx.strokeStyle = keyStates[key] ? '#0ff' : '#777';
+        ctx.lineWidth = keyStates[key] ? 3 : 1;
+        ctx.stroke();
+
+        ctx.font = '20px Arial';
+        ctx.fillStyle = keyStates[key] ? '#fff' : '#888';
+        ctx.textAlign = 'center';
+        ctx.fillText(key.toUpperCase(), x, hitZoneY + 8);
+      }
+    }
+
+    function drawHitEffects() {
+      for (let i = hitEffects.length - 1; i >= 0; i--) {
+        const eff = hitEffects[i];
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 255, 255, ${eff.alpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        eff.radius += 2;
+        eff.alpha -= 0.05;
+        if (eff.alpha <= 0) hitEffects.splice(i, 1);
+      }
+    }
+
+    // Game variables
+    let gameStarted = false;
+    let paused = false;
+
+    // Game loop
+    function gameLoop() {
+      const now = audio.currentTime;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawHitZone();
+      drawHitEffects();
+
+      const allNotesProcessed = notes.every(note => note.hit) &&
+                                sliders.every(slider => slider.hit);
+      if (audio.ended && allNotesProcessed) {
+        showGameOverScreen();
+        return;
+      }
+
+      for (let note of notes) {
+        if (note.hit) continue;
+        const timeToNote = note.time - now;
+        const y = hitZoneY - timeToNote * 100 * noteSpeed;
+
+        if (y > canvas.height) {
+          note.hit = true;
+          missedNotes++;
+          updateStats();
+          continue;
+        }
+
+        if (y > canvas.height || y < -40) continue;
+        drawNote(lanesMap[note.key], y);
+      }
+
+      for (let slider of sliders) {
+        const timeToStart = slider.startTime - now;
+        const timeToEnd = slider.endTime - now;
+        const yStart = hitZoneY - timeToStart * 100 * noteSpeed;
+        const yEnd = hitZoneY - timeToEnd * 100 * noteSpeed;
+
+        const isActive = keyStates[slider.key] && now >= slider.startTime && now <= slider.endTime;
+
+        if (now > slider.endTime && slider.active && !slider.hit) {
+          slider.hit = true;
+          hitEffects.push({ x: lanesMap[slider.key], y: hitZoneY, radius: 20, alpha: 1 });
+          updateStats();
+          continue;
+        }
+
+        if (yEnd > canvas.height || yStart < -40) continue;
+        drawSlider(lanesMap[slider.key], yStart, yStart - yEnd, isActive);
+        if (isActive) {
+          slider.active = true;
+          score += 10;
+          updateStats();
+        }
+      }
+
+      if (feedbackTimer > 0) {
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.fillText(feedback, canvas.width / 2, hitZoneY - 50);
+        feedbackTimer--;
+      }
+
+      if (gameStarted) requestAnimationFrame(gameLoop);
+    }
+
+    // Input handling
+    document.addEventListener('keydown', function(e) {
+      const key = e.key.toLowerCase();
+      if (dfjkKeys.includes(key)) {
+        if (!keyStates[key]) {
+          keyStates[key] = true;
+          checkNoteHit(key);
+        }
+      } else if (key === 'escape') {
+        togglePause();
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      keyStates[key] = false;
+    });
+
+    // Check note hit
+    function checkNoteHit(key) {
+      const now = audio.currentTime;
+      for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        if (!note.hit && note.key === key) {
+          const timeDifference = Math.abs(note.time - now);
+
+          if (timeDifference < 0.1) {
+            feedback = "Perfect!";
+            score += 300;
+          } else if (timeDifference < 0.2) {
+            feedback = "Good!";
+            score += 200;
+          } else if (timeDifference < 0.3) {
+            feedback = "Bad!";
+            score += 100;
+          } else {
+            continue;
+          }
+
+          note.hit = true;
+          notesHit++;
+          feedbackTimer = 30;
+          hitEffects.push({ x: lanesMap[key], y: hitZoneY, radius: 10, alpha: 1 });
+          updateStats();
+          return;
+        }
+      }
+
+      feedback = "Miss!";
+      missedNotes++;
+      feedbackTimer = 30;
+      updateStats();
+    }
+
+    // Pause and resume
+    function togglePause() {
+      if (!gameStarted) return;
+
+      if (!paused) {
+        paused = true;
+        audio.pause();
+        showPauseMenu();
+        dfjkKeys.forEach(key => keyStates[key] = false);
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        // Remove sliders from pause menu if any (user request)
+        // The pause menu does not show sliders, so no action needed here
+      } else {
+        resumeGame();
+      }
+    }
+
+    function resumeGame() {
+      paused = false;
+      audio.play().catch(error => {
+        console.error("Error resuming audio:", error);
+      });
+      hidePauseMenu();
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    // Pause menu UI
+    const pauseMenu = document.createElement('div');
+    pauseMenu.id = 'pauseMenu';
+    pauseMenu.style.display = 'none';
+    pauseMenu.style.position = 'absolute';
+    pauseMenu.style.top = '50%';
+    pauseMenu.style.left = '50%';
+    pauseMenu.style.transform = 'translate(-50%, -50%)';
+    pauseMenu.style.background = 'rgba(0, 0, 0, 0.95)';
+    pauseMenu.style.padding = '40px';
+    pauseMenu.style.borderRadius = '24px';
+    pauseMenu.style.boxShadow = '0 0 40px rgba(0, 255, 255, 0.2)';
+    pauseMenu.style.backdropFilter = 'blur(15px)';
+    pauseMenu.style.textAlign = 'center';
+    pauseMenu.style.zIndex = '20';
+
+    const pauseTitle = document.createElement('h2');
+    pauseTitle.textContent = 'Pause Menu';
+    pauseTitle.style.color = '#0ff';
+    pauseTitle.style.margin = '0 0 30px 0';
+    pauseTitle.style.fontSize = '2em';
+    pauseMenu.appendChild(pauseTitle);
+
+    const resumeButton = document.createElement('button');
+    resumeButton.id = 'resumeButton';
+    resumeButton.textContent = 'Resume';
+    resumeButton.style.marginTop = '30px';
+    resumeButton.style.padding = '15px 40px';
+    resumeButton.style.fontSize = '18px';
+    resumeButton.style.background = '#0ff';
+    resumeButton.style.color = '#000';
+    resumeButton.style.border = 'none';
+    resumeButton.style.borderRadius = '16px';
+    resumeButton.style.cursor = 'pointer';
+    resumeButton.style.transition = 'all 0.3s ease';
+    resumeButton.style.fontWeight = 'bold';
+    resumeButton.style.textTransform = 'uppercase';
+    pauseMenu.appendChild(resumeButton);
+
+    resumeButton.addEventListener('click', () => {
+      togglePause();
+    });
+
+    // Add Restart button
+    const restartButton = document.createElement('button');
+    restartButton.id = 'restartButton';
+    restartButton.textContent = 'Restart';
+    restartButton.style.marginTop = '15px';
+    restartButton.style.padding = '15px 40px';
+    restartButton.style.fontSize = '18px';
+    restartButton.style.background = '#0ff';
+    restartButton.style.color = '#000';
+    restartButton.style.border = 'none';
+    restartButton.style.borderRadius = '16px';
+    restartButton.style.cursor = 'pointer';
+    restartButton.style.transition = 'all 0.3s ease';
+    restartButton.style.fontWeight = 'bold';
+    restartButton.style.textTransform = 'uppercase';
+    pauseMenu.appendChild(restartButton);
+
+    restartButton.addEventListener('click', () => {
+      hidePauseMenu();
+      resetGame();
+      startGame();
+    });
+
+    // Add Quit button
+    const quitButton = document.createElement('button');
+    quitButton.id = 'quitButton';
+    quitButton.textContent = 'Quit';
+    quitButton.style.marginTop = '15px';
+    quitButton.style.padding = '15px 40px';
+    quitButton.style.fontSize = '18px';
+    quitButton.style.background = '#0ff';
+    quitButton.style.color = '#000';
+    quitButton.style.border = 'none';
+    quitButton.style.borderRadius = '16px';
+    quitButton.style.cursor = 'pointer';
+    quitButton.style.transition = 'all 0.3s ease';
+    quitButton.style.fontWeight = 'bold';
+    quitButton.style.textTransform = 'uppercase';
+    pauseMenu.appendChild(quitButton);
+
+    quitButton.addEventListener('click', () => {
+      window.location.href = 'brows.html';
+    });
+
+    document.body.appendChild(pauseMenu);
+
+    // Show and hide pause menu
+    function showPauseMenu() {
+      pauseMenu.style.display = 'block';
+    }
+
+    function hidePauseMenu() {
+      pauseMenu.style.display = 'none';
+    }
+
+    // Game start
+    function startGame() {
+      if (notes.length === 0) {
+        alert('No chart loaded. Please load a chart file.');
+        return;
+      }
+      score = 0;
+      notesHit = 0;
+      missedNotes = 0;
+      updateStats();
+      gameStarted = true;
+      audio.play().then(() => {
+        requestAnimationFrame(gameLoop);
+      }).catch(err => {
+        alert("Autoplay is blocked. Click Play to start the audio.");
+        console.error(err);
+      });
+    }
+
+    // Reset game state for restart
+    function resetGame() {
+      score = 0;
+      notesHit = 0;
+      missedNotes = 0;
+      feedback = "";
+      feedbackTimer = 0;
+      gameStarted = false;
+      paused = false;
+      notes.forEach(note => note.hit = false);
+      sliders.forEach(slider => {
+        slider.hit = false;
+        slider.active = false;
+      });
+      updateStats();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Load map data and set audio source from URL parameter on page load
+    window.addEventListener('load', () => {
+      const params = new URLSearchParams(window.location.search);
+      const mapId = params.get('mapId');
+      const autoplay = params.get('autoplay') === 'true';
+
+      if (mapId) {
+        fetch('/api/maps')
+          .then(response => response.json())
+          .then(maps => {
+            const map = maps.find(m => m.id.toString() === mapId);
+            if (!map) {
+              alert('Map not found.');
+              throw new Error('Map not found');
+            }
+            notes = [];
+            sliders = [];
+            map.chartData.forEach(note => {
+              if (note.type === 'slider') {
+                sliders.push({
+                  startTime: parseFloat(note.startTime),
+                  endTime: parseFloat(note.endTime),
+                  key: note.note,
+                  hit: false,
+                  active: false,
+                });
+              } else {
+                notes.push({
+                  time: parseFloat(note.time),
+                  key: note.note,
+                  hit: false,
+                });
+              }
+            });
+            setAudioSource();
+            if (autoplay) {
+              startGame();
+              const playButton = document.getElementById('playButton');
+              playButton.disabled = true;
+              playButton.style.opacity = 0.5;
+              playButton.style.cursor = 'default';
+            }
+          })
+          .catch(e => {
+            alert('Failed to load map data.');
+            console.error(e);
+          });
+      } else {
+        alert('No mapId parameter provided.');
+      }
+    });
+
+    // Add event listener to Play button to start the game on user interaction
+    document.getElementById('playButton').addEventListener('click', () => {
+      if (!gameStarted) {
+        startGame();
+        const playButton = document.getElementById('playButton');
+        playButton.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
