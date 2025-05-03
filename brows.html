@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+when <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -160,10 +160,9 @@
           const playBtn = document.createElement('button');
           playBtn.textContent = 'Play';
           playBtn.addEventListener('click', () => {
-            // Load map data into play.html via URL parameter with song audio source
-            const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
+            // Load map data into play.html via mapId parameter
             const songUrl = songMap[map.title] || '';
-            const url = `play.html?chart=${encodedData}&song=${encodeURIComponent(songUrl)}`;
+            const url = `play.html?mapId=${map.id}&song=${encodeURIComponent(songUrl)}`;
             window.location.href = url;
           });
 

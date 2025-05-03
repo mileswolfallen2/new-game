@@ -50,18 +50,7 @@
   </div>
 
   <script>
-    // Parse map data and song URL from URL parameters
-    function getMapDataFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const encodedChart = params.get('chart');
-      if (!encodedChart) return null;
-      try {
-        return JSON.parse(decodeURIComponent(atob(encodedChart)));
-      } catch (e) {
-        console.error('Failed to parse map data from URL', e);
-        return null;
-      }
-    }
+    // Removed getMapDataFromUrl function as chart data will be loaded by mapId
 
     function getSongUrlFromUrl() {
       const params = new URLSearchParams(window.location.search);
@@ -541,41 +530,52 @@
     // Load map data and set audio source from URL parameter on page load
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
-      const encodedChart = params.get('chart');
+      const mapId = params.get('mapId');
       const autoplay = params.get('autoplay') === 'true';
-      if (encodedChart) {
-        try {
-          const chartData = JSON.parse(decodeURIComponent(atob(encodedChart)));
-          notes = [];
-          sliders = [];
-          chartData.forEach(note => {
-            if (note.type === 'slider') {
-              sliders.push({
-                startTime: parseFloat(note.startTime),
-                endTime: parseFloat(note.endTime),
-                key: note.note,
-                hit: false,
-                active: false,
-              });
-            } else {
-              notes.push({
-                time: parseFloat(note.time),
-                key: note.note,
-                hit: false,
-              });
+
+      if (mapId) {
+        fetch('/api/maps')
+          .then(response => response.json())
+          .then(maps => {
+            const map = maps.find(m => m.id.toString() === mapId);
+            if (!map) {
+              alert('Map not found.');
+              throw new Error('Map not found');
             }
+            notes = [];
+            sliders = [];
+            map.chartData.forEach(note => {
+              if (note.type === 'slider') {
+                sliders.push({
+                  startTime: parseFloat(note.startTime),
+                  endTime: parseFloat(note.endTime),
+                  key: note.note,
+                  hit: false,
+                  active: false,
+                });
+              } else {
+                notes.push({
+                  time: parseFloat(note.time),
+                  key: note.note,
+                  hit: false,
+                });
+              }
+            });
+            setAudioSource();
+            if (autoplay) {
+              startGame();
+              const playButton = document.getElementById('playButton');
+              playButton.disabled = true;
+              playButton.style.opacity = 0.5;
+              playButton.style.cursor = 'default';
+            }
+          })
+          .catch(e => {
+            alert('Failed to load map data.');
+            console.error(e);
           });
-          setAudioSource();
-          if (autoplay) {
-            startGame();
-            document.getElementById('playButton').disabled = true;
-            document.getElementById('playButton').style.opacity = 0.5;
-            document.getElementById('playButton').style.cursor = 'default';
-          }
-        } catch (e) {
-          alert('Failed to load map data.');
-          console.error(e);
-        }
+      } else {
+        alert('No mapId parameter provided.');
       }
     });
 

@@ -13,6 +13,9 @@ const JWT_SECRET = 'your_jwt_secret_key'; // Change this to a secure key in prod
 app.use(cors());
 app.use(bodyParser.json());
 
+// Serve static files from the current directory
+app.use(express.static(__dirname));
+
 // Data storage files
 const usersFile = path.join(__dirname, 'users.json');
 const mapsFile = path.join(__dirname, 'maps.json');
