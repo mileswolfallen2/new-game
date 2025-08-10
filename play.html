@@ -93,32 +93,43 @@
     const keyStates = {};
 
     // Load map data from URL
-    function loadMapData(chartData) {
+    function loadMapDataFromText(text) {
       notes = [];
       sliders = [];
-      chartData.forEach(note => {
-        if (note.type === 'slider') {
+      let songUrl = '';
+      const lines = text.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('Song:')) {
+          songUrl = line.replace('Song:', '').trim();
+          continue;
+        }
+        const noteMatch = line.match(/Time: ([\d.]+), Note: (\w+)/);
+        if (noteMatch) {
+          notes.push({
+            time: parseFloat(noteMatch[1]),
+            key: noteMatch[2],
+            hit: false,
+          });
+          continue;
+        }
+        const sliderMatch = line.match(/Slider: StartTime: ([\d.]+), EndTime: ([\d.]+), Key: (\w+)/);
+        if (sliderMatch) {
           sliders.push({
-            startTime: parseFloat(note.startTime),
-            endTime: parseFloat(note.endTime),
-            key: note.note,
+            startTime: parseFloat(sliderMatch[1]),
+            endTime: parseFloat(sliderMatch[2]),
+            key: sliderMatch[3],
             hit: false,
             active: false,
           });
-        } else {
-          notes.push({
-            time: parseFloat(note.time),
-            key: note.note,
-            hit: false,
-          });
         }
-      });
+      }
+      setAudioSource(songUrl);
     }
 
     // Set audio source from song URL parameter
-    function setAudioSource() {
-      let songUrl = getSongUrlFromUrl();
-      console.log("Song URL parameter:", songUrl);
+    function setAudioSource(songUrlOverride) {
+      let songUrl = songUrlOverride || getSongUrlFromUrl();
+      console.log("Song URL:", songUrl);
       const playButton = document.getElementById('playButton');
       if (!songUrl) {
         // Fallback to default song if no song URL provided
@@ -531,9 +542,28 @@
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
       const mapId = params.get('mapId');
+      const chartFile = params.get('chartFile');
       const autoplay = params.get('autoplay') === 'true';
 
-      if (mapId) {
+      if (chartFile) {
+        // Load chart from text file
+        fetch(chartFile)
+          .then(response => response.text())
+          .then(text => {
+            loadMapDataFromText(text);
+            if (autoplay) {
+              startGame();
+              const playButton = document.getElementById('playButton');
+              playButton.disabled = true;
+              playButton.style.opacity = 0.5;
+              playButton.style.cursor = 'default';
+            }
+          })
+          .catch(e => {
+            alert('Failed to load chart file.');
+            console.error(e);
+          });
+      } else if (mapId) {
         fetch('/api/maps')
           .then(response => response.json())
           .then(maps => {
@@ -561,7 +591,8 @@
                 });
               }
             });
-            setAudioSource();
+            // Use map.song if present, otherwise fallback
+            setAudioSource(map.song);
             if (autoplay) {
               startGame();
               const playButton = document.getElementById('playButton');
@@ -575,7 +606,7 @@
             console.error(e);
           });
       } else {
-        alert('No mapId parameter provided.');
+        alert('No mapId or chartFile parameter provided.');
       }
     });
 

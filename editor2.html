@@ -242,9 +242,12 @@
         alert("No chart data to export.");
         return;
       }
-
-      // Format chart data as plain text
-      const textData = chartData
+      const song = songSelector.value;
+      let textData = '';
+      if (song && song.trim() !== '') {
+        textData += `Song: ${song}\n`;
+      }
+      textData += chartData
         .map((note) =>
           note.type === "slider"
             ? `Slider: StartTime: ${note.startTime}, EndTime: ${note.endTime}, Key: ${note.note}`
@@ -371,6 +374,11 @@
         alert('No chart data to publish.');
         return;
       }
+      const song = songSelector.value;
+      if (!song || song.trim() === '') {
+        alert('Please select a song before publishing your map.');
+        return;
+      }
       const title = prompt('Enter a title for your map:');
       if (!title) {
         alert('Publishing cancelled: title is required.');
@@ -382,13 +390,13 @@
         return;
       }
       try {
-        const response = await fetch('https://bug-free-space-succotash-q77746g7pjrhx47p-3001.app.github.dev/api/maps', {
+        const response = await fetch('https://psychic-space-winner-wp6r9r97qv6hvgw4-3001.app.github.dev/api/maps', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           },
-          body: JSON.stringify({ title, chartData })
+          body: JSON.stringify({ title, chartData, song })
         });
         if (response.ok) {
           alert('Map published successfully!');
