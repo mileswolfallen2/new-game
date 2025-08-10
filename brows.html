@@ -80,7 +80,7 @@ when <!DOCTYPE html>
   <ul id="mapList"></ul>
 
   <script>
-    const API_BASE_URL = 'https://bug-free-space-succotash-q77746g7pjrhx47p-3001.app.github.dev/api';
+    const API_BASE_URL = 'https://psychic-space-winner-wp6r9r97qv6hvgw4-3001.app.github.dev/api';
 
     // Check login status
     function getCurrentUser() {
@@ -139,30 +139,21 @@ when <!DOCTYPE html>
           loadBtn.addEventListener('click', () => {
             // Load map data into editor2.html via URL parameter
             const encodedData = btoa(encodeURIComponent(JSON.stringify(map.chartData)));
-            const url = `editor2.html?chart=${encodedData}`;
+            let url = `editor2.html?chart=${encodedData}`;
+            if (map.song) {
+              url += `&song=${encodeURIComponent(map.song)}`;
+            }
             window.location.href = url;
           });
-
-          // Map of song titles to audio file paths
-          const songMap = {
-            "Neon Dreams": "/songs/song.mp3",
-            "All My Stars": "/songs/song2.mp3",
-            "Digital Sunset": "/songs/song3.mp3",
-            "Cyber Rush": "/songs/song4.mp3",
-            "Night Drive": "/songs/song5.mp3",
-            "Never": "/songs/song6.mp3",
-            "Battle Under A Broken Sky": "/songs/battleundersky.mp3",
-            "Press X Twice": "/songs/Press X Twice.mp3",
-            "Song 7": "/songs/videoplayback1.mp3",
-            "Mega Man 2 — Staff Roll (piano)": "/songs/Mega Man 2 — Staff Roll (piano).mp3"
-          };
 
           const playBtn = document.createElement('button');
           playBtn.textContent = 'Play';
           playBtn.addEventListener('click', () => {
-            // Load map data into play.html via mapId parameter
-            const songUrl = songMap[map.title] || '';
-            const url = `play.html?mapId=${map.id}&song=${encodeURIComponent(songUrl)}`;
+            // Load map data into play.html via mapId and song parameter
+            let url = `play.html?mapId=${map.id}`;
+            if (map.song) {
+              url += `&song=${encodeURIComponent(map.song)}`;
+            }
             window.location.href = url;
           });
 
