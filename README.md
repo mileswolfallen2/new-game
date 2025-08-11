@@ -39,6 +39,7 @@ This project is a rhythm-based game where players can select songs and interact 
 
 ## Contributing
 Contributions are welcome! Feel free to submit issues or pull requests to improve the game.
+to run the srver use the command node server.js
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
