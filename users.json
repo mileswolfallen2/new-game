@@ -6,5 +6,9 @@
   {
     "username": "miles2",
     "password": "$2b$10$Qh6iIOl.PJl1VKv.sEoGPuPWQ5NcB4nMUcedRQ/LM6ckElgcoruR2"
+  },
+  {
+    "username": "test",
+    "password": "$2b$10$UzEq9ZftCJC2CR3xU/zySeCk/2//xv3fjwV17XrFXuo201yd.5kgS"
   }
 ]

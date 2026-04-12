@@ -551,12 +551,16 @@
           .then(response => response.text())
           .then(text => {
             loadMapDataFromText(text);
+            // Wait for audio to be ready before starting
             if (autoplay) {
-              startGame();
-              const playButton = document.getElementById('playButton');
-              playButton.disabled = true;
-              playButton.style.opacity = 0.5;
-              playButton.style.cursor = 'default';
+              audio.addEventListener('loadedmetadata', function onReady() {
+                audio.removeEventListener('loadedmetadata', onReady);
+                startGame();
+                const playButton = document.getElementById('playButton');
+                playButton.disabled = true;
+                playButton.style.opacity = 0.5;
+                playButton.style.cursor = 'default';
+              });
             }
           })
           .catch(e => {
@@ -565,7 +569,10 @@
           });
       } else if (mapId) {
         fetch('/api/maps')
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) throw new Error('API returned ' + response.status);
+            return response.json();
+          })
           .then(maps => {
             const map = maps.find(m => m.id.toString() === mapId);
             if (!map) {
@@ -594,16 +601,19 @@
             // Use map.song if present, otherwise fallback
             setAudioSource(map.song);
             if (autoplay) {
-              startGame();
-              const playButton = document.getElementById('playButton');
-              playButton.disabled = true;
-              playButton.style.opacity = 0.5;
-              playButton.style.cursor = 'default';
+              audio.addEventListener('loadedmetadata', function onReady() {
+                audio.removeEventListener('loadedmetadata', onReady);
+                startGame();
+                const playButton = document.getElementById('playButton');
+                playButton.disabled = true;
+                playButton.style.opacity = 0.5;
+                playButton.style.cursor = 'default';
+              });
             }
           })
           .catch(e => {
-            alert('Failed to load map data.');
-            console.error(e);
+            console.error('Error loading map:', e);
+            alert('Failed to load map data: ' + e.message);
           });
       } else {
         alert('No mapId or chartFile parameter provided.');

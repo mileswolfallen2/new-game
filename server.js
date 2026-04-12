@@ -1,13 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
+const PORT = 4000;
 const JWT_SECRET = 'your_jwt_secret_key'; // Change this to a secure key in production
 
 app.use(cors());
@@ -82,6 +82,50 @@ function authenticateToken(req, res, next) {
 app.get('/api/maps', (req, res) => {
   const maps = readJsonFile(mapsFile);
   res.json(maps);
+});
+
+// Search maps endpoint
+app.get('/api/maps/search', (req, res) => {
+  const { query } = req.query;
+  const maps = readJsonFile(mapsFile);
+  if (!query) return res.json(maps);
+  const lowerQuery = query.toLowerCase();
+  const filtered = maps.filter(m => 
+    m.title.toLowerCase().includes(lowerQuery) ||
+    m.author.toLowerCase().includes(lowerQuery)
+  );
+  res.json(filtered);
+});
+
+// Delete map endpoint (authenticated)
+app.delete('/api/maps/:id', authenticateToken, (req, res) => {
+  const maps = readJsonFile(mapsFile);
+  const id = parseInt(req.params.id);
+  const index = maps.findIndex(m => m.id === id);
+  if (index === -1) return res.status(404).json({ message: 'Map not found' });
+  maps.splice(index, 1);
+  writeJsonFile(mapsFile, maps);
+  res.json({ message: 'Map deleted' });
+});
+
+// Get users endpoint
+app.get('/api/users', authenticateToken, (req, res) => {
+  const users = readJsonFile(usersFile);
+  const { search } = req.query;
+  if (!search) return res.json(users.map(u => ({ username: u.username })));
+  const filtered = users.filter(u => u.username.toLowerCase().includes(search.toLowerCase()));
+  res.json(filtered.map(u => ({ username: u.username })));
+});
+
+// Delete user endpoint (authenticated)
+app.delete('/api/users/:username', authenticateToken, (req, res) => {
+  const users = readJsonFile(usersFile);
+  const username = req.params.username;
+  const index = users.findIndex(u => u.username === username);
+  if (index === -1) return res.status(404).json({ message: 'User not found' });
+  users.splice(index, 1);
+  writeJsonFile(usersFile, users);
+  res.json({ message: 'User deleted' });
 });
 
 // Publish map endpoint (authenticated)
